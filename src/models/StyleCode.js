@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const styleCodeSchema = new mongoose.Schema({
     StyleCodeID: {
-        type: Number,
+        type: String, // Changed to String to match the format of "11TM010019"
         required: true,
     },
     StyleCode: {
@@ -10,7 +10,8 @@ const styleCodeSchema = new mongoose.Schema({
         required: true,
     },
     ItemWeight: {
-        type: Number,
+        type: Map, // Using a Map to hold weights for different categories
+        of: Number, // Each value in the map is a Number
         required: true,
     },
     ItemPackingWeight: {
@@ -19,6 +20,6 @@ const styleCodeSchema = new mongoose.Schema({
     }
 });
 
-// Define and export the Login model
+// Define and export the StyleCode model
 const StyleCode = mongoose.model('StyleCode', styleCodeSchema);
 module.exports = StyleCode;
