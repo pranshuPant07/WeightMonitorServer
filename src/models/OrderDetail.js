@@ -32,7 +32,7 @@ const mongoose = require('mongoose');
 
 const StyleCodeSchema = new mongoose.Schema({
     StyleCodeID: {
-        type: Number,
+        type: String,
         required: true,
     },
     RequiredQuantity: {
