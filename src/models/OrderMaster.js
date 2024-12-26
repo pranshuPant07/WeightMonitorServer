@@ -10,7 +10,7 @@ const OrderMasterSchema = new mongoose.Schema({
         required: true,
     },
     OrderNo: {
-        type: Number,
+        type: String,
         required: true,
     },
     CustomerName: {
