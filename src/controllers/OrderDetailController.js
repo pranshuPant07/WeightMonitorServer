@@ -254,61 +254,108 @@ exports.AddOrderDetails = async (req, res) => {
 
 
 
+// exports.UpdateOrderDetails = async (req, res) => {
+//     // Log incoming request body
+//     console.log("Received request to update order details with data:", req.body);
+
+//     const { StyleCodeID, ScannedQuantity, RemainingQuantity, Status } = req.body;
+
+//     try {
+//         // Find the order containing the StyleCodeID
+//         const orderDetails = await OrderDetail.findOne({
+//             "StyleCodes.StyleCodeID": StyleCodeID
+//         });
+
+//         if (!orderDetails) {
+//             console.log("Order Details Not Found for StyleCodeID:", StyleCodeID);
+//             return res.status(404).json({ message: "Order Details Not Found" });
+//         }
+
+//         console.log("Order details found:", orderDetails);
+
+//         // Find the style code in the array
+//         const styleCode = orderDetails.StyleCodes.find(code => code.StyleCodeID === StyleCodeID);
+//         if (styleCode) {
+//             console.log("Found StyleCode:", styleCode);
+
+//             // Update quantities if provided
+//             if (ScannedQuantity !== undefined) {
+//                 styleCode.ScannedQuantity = ScannedQuantity;
+//                 console.log("Updated ScannedQuantity:", styleCode.ScannedQuantity);
+//             }
+
+//             if (RemainingQuantity !== undefined) {
+//                 styleCode.RemainingQuantity = RemainingQuantity;
+//                 console.log("Updated RemainingQuantity:", styleCode.RemainingQuantity);
+//             }
+
+//             // Update status if provided
+//             if (Status !== undefined) {
+//                 styleCode.Status = Status;
+//                 console.log("Updated Status:", styleCode.Status);
+//             }
+
+//             // Mark the StyleCodes array as modified and save
+//             orderDetails.markModified('StyleCodes');
+//             await orderDetails.save();
+//             console.log("Order details saved successfully with updated quantities and status.");
+
+//             return res.status(200).json({ message: "Order Details Updated Successfully" });
+//         } else {
+//             console.log("StyleCodeID not found in the order's StyleCodes array.");
+//             return res.status(404).json({ message: "StyleCodeID not found in this order" });
+//         }
+//     } catch (error) {
+//         console.error("Error updating order details:", error);
+//         return res.status(500).json({ message: "Server Error" });
+//     }
+// };
+
+
 exports.UpdateOrderDetails = async (req, res) => {
     // Log incoming request body
     console.log("Received request to update order details with data:", req.body);
 
-    const { StyleCodeID, ScannedQuantity, RemainingQuantity, Status } = req.body;
+    const { ID, ScannedQuantity, RemainingQuantity, Status } = req.body;
 
     try {
-        // Find the order containing the StyleCodeID
-        const orderDetails = await OrderDetail.findOne({
-            "StyleCodes.StyleCodeID": StyleCodeID
-        });
+        // Find the specific order detail by ID
+        const orderDetails = await OrderDetail.findById(ID);
 
         if (!orderDetails) {
-            console.log("Order Details Not Found for StyleCodeID:", StyleCodeID);
+            console.log("Order Details Not Found for ID:", ID);
             return res.status(404).json({ message: "Order Details Not Found" });
         }
 
         console.log("Order details found:", orderDetails);
 
-        // Find the style code in the array
-        const styleCode = orderDetails.StyleCodes.find(code => code.StyleCodeID === StyleCodeID);
-        if (styleCode) {
-            console.log("Found StyleCode:", styleCode);
-
-            // Update quantities if provided
-            if (ScannedQuantity !== undefined) {
-                styleCode.ScannedQuantity = ScannedQuantity;
-                console.log("Updated ScannedQuantity:", styleCode.ScannedQuantity);
-            }
-
-            if (RemainingQuantity !== undefined) {
-                styleCode.RemainingQuantity = RemainingQuantity;
-                console.log("Updated RemainingQuantity:", styleCode.RemainingQuantity);
-            }
-
-            // Update status if provided
-            if (Status !== undefined) {
-                styleCode.Status = Status;
-                console.log("Updated Status:", styleCode.Status);
-            }
-
-            // Mark the StyleCodes array as modified and save
-            orderDetails.markModified('StyleCodes');
-            await orderDetails.save();
-            console.log("Order details saved successfully with updated quantities and status.");
-
-            return res.status(200).json({ message: "Order Details Updated Successfully" });
-        } else {
-            console.log("StyleCodeID not found in the order's StyleCodes array.");
-            return res.status(404).json({ message: "StyleCodeID not found in this order" });
+        // Update quantities if provided
+        if (ScannedQuantity !== undefined) {
+            orderDetails.ScannedQuantity = ScannedQuantity;
+            console.log("Updated ScannedQuantity:", orderDetails.ScannedQuantity);
         }
+
+        if (RemainingQuantity !== undefined) {
+            orderDetails.RemainingQuantity = RemainingQuantity;
+            console.log("Updated RemainingQuantity:", orderDetails.RemainingQuantity);
+        }
+
+        // Update status if provided
+        if (Status !== undefined) {
+            orderDetails.Status = Status;
+            console.log("Updated Status:", orderDetails.Status);
+        }
+
+        // Save the updated order details
+        await orderDetails.save();
+        console.log("Order details saved successfully with updated quantities and status.");
+
+        return res.status(200).json({ message: "Order Details Updated Successfully" });
     } catch (error) {
         console.error("Error updating order details:", error);
         return res.status(500).json({ message: "Server Error" });
     }
 };
+
 
 
