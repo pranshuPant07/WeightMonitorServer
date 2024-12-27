@@ -312,6 +312,51 @@ exports.AddOrderDetails = async (req, res) => {
 // };
 
 
+// exports.UpdateOrderDetails = async (req, res) => {
+//     // Log incoming request body
+//     console.log("Received request to update order details with data:", req.body);
+
+//     const { ID, ScannedQuantity, RemainingQuantity, Status } = req.body;
+
+//     try {
+//         // Find the specific order detail by ID
+//         const orderDetails = await OrderDetail.findById(ID);
+
+//         if (!orderDetails) {
+//             console.log("Order Details Not Found for ID:", ID);
+//             return res.status(404).json({ message: "Order Details Not Found" });
+//         }
+
+//         console.log("Order details found:", orderDetails);
+
+//         // Update quantities if provided
+//         if (ScannedQuantity !== undefined) {
+//             orderDetails.ScannedQuantity = ScannedQuantity;
+//             console.log("Updated ScannedQuantity:", orderDetails.ScannedQuantity);
+//         }
+
+//         if (RemainingQuantity !== undefined) {
+//             orderDetails.RemainingQuantity = RemainingQuantity;
+//             console.log("Updated RemainingQuantity:", orderDetails.RemainingQuantity);
+//         }
+
+//         // Update status if provided
+//         if (Status !== undefined) {
+//             orderDetails.Status = Status;
+//             console.log("Updated Status:", orderDetails.Status);
+//         }
+
+//         // Save the updated order details
+//         await orderDetails.save();
+//         console.log("Order details saved successfully with updated quantities and status.");
+
+//         return res.status(200).json({ message: "Order Details Updated Successfully" });
+//     } catch (error) {
+//         console.error("Error updating order details:", error);
+//         return res.status(500).json({ message: "Server Error" });
+//     }
+// };
+
 exports.UpdateOrderDetails = async (req, res) => {
     // Log incoming request body
     console.log("Received request to update order details with data:", req.body);
@@ -319,43 +364,56 @@ exports.UpdateOrderDetails = async (req, res) => {
     const { ID, ScannedQuantity, RemainingQuantity, Status } = req.body;
 
     try {
-        // Find the specific order detail by ID
-        const orderDetails = await OrderDetail.findById(ID);
+        // Find the order that contains the specific StyleCode by its `_id` in the StyleCodes array
+        const orderDetails = await OrderDetail.findOne({
+            "StyleCodes._id": ID // Match the StyleCode's `_id`
+        });
 
         if (!orderDetails) {
-            console.log("Order Details Not Found for ID:", ID);
-            return res.status(404).json({ message: "Order Details Not Found" });
+            console.log("Order Details Not Found for StyleCode ID:", ID);
+            return res.status(404).json({ message: "StyleCode Not Found" });
         }
 
         console.log("Order details found:", orderDetails);
 
-        // Update quantities if provided
+        // Find the specific StyleCode in the array
+        const styleCode = orderDetails.StyleCodes.find(code => code._id.toString() === ID);
+
+        if (!styleCode) {
+            console.log("StyleCode ID not found in the StyleCodes array.");
+            return res.status(404).json({ message: "StyleCode ID not found in this order" });
+        }
+
+        console.log("Found StyleCode:", styleCode);
+
+        // Update the fields if provided
         if (ScannedQuantity !== undefined) {
-            orderDetails.ScannedQuantity = ScannedQuantity;
-            console.log("Updated ScannedQuantity:", orderDetails.ScannedQuantity);
+            styleCode.ScannedQuantity = ScannedQuantity;
+            console.log("Updated ScannedQuantity:", styleCode.ScannedQuantity);
         }
 
         if (RemainingQuantity !== undefined) {
-            orderDetails.RemainingQuantity = RemainingQuantity;
-            console.log("Updated RemainingQuantity:", orderDetails.RemainingQuantity);
+            styleCode.RemainingQuantity = RemainingQuantity;
+            console.log("Updated RemainingQuantity:", styleCode.RemainingQuantity);
         }
 
-        // Update status if provided
         if (Status !== undefined) {
-            orderDetails.Status = Status;
-            console.log("Updated Status:", orderDetails.Status);
+            styleCode.Status = Status;
+            console.log("Updated Status:", styleCode.Status);
         }
 
-        // Save the updated order details
+        // Mark the StyleCodes array as modified and save the updated document
+        orderDetails.markModified("StyleCodes");
         await orderDetails.save();
-        console.log("Order details saved successfully with updated quantities and status.");
 
-        return res.status(200).json({ message: "Order Details Updated Successfully" });
+        console.log("Order details saved successfully with updated StyleCode.");
+        return res.status(200).json({ message: "StyleCode Updated Successfully" });
     } catch (error) {
-        console.error("Error updating order details:", error);
+        console.error("Error updating StyleCode details:", error);
         return res.status(500).json({ message: "Server Error" });
     }
 };
+
 
 
 
