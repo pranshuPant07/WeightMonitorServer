@@ -38,19 +38,24 @@ exports.getStyleCodes = async (req, res) => {
 
 
 exports.StyleCodeUpdate = async (req, res) => {
-    const { StyleCodeID, StyleCode, ItemWeight, ItemPackingWeight } = req.body;
+    const { StyleCodeID, StyleCode, Description, Color, SizeType, ItemWeight, ItemPackingWeight } = req.body;
 
     try {
+        // Validate SizeType
+        if (!['Inch', 'Cm', 'Alpha'].includes(SizeType)) {
+            return res.status(400).json({ error: 'Invalid SizeType' });
+        }
+
         // Find the existing StyleCode by StyleCodeID
-        const existingStyleCodeByID = await StyleCodeS.findOne({ StyleCodeID: StyleCodeID });
+        const existingStyleCodeByID = await StyleCode.findOne({ StyleCodeID: StyleCodeID });
         if (!existingStyleCodeByID) {
             return res.status(404).json({ error: 'StyleCode not found' });
         }
 
         // Check if another StyleCode with the same StyleCode exists
-        const existingStyleCode = await StyleCodeS.findOne({
+        const existingStyleCode = await StyleCode.findOne({
             StyleCode: StyleCode,
-            StyleCodeID: { $ne: StyleCodeID } // Exclude the current document
+            StyleCodeID: { $ne: StyleCodeID }, // Exclude the current document
         });
 
         if (existingStyleCode) {
@@ -59,6 +64,9 @@ exports.StyleCodeUpdate = async (req, res) => {
 
         // Update the fields
         existingStyleCodeByID.StyleCode = StyleCode || existingStyleCodeByID.StyleCode;
+        existingStyleCodeByID.Description = Description || existingStyleCodeByID.Description;
+        existingStyleCodeByID.Color = Color || existingStyleCodeByID.Color;
+        existingStyleCodeByID.SizeType = SizeType || existingStyleCodeByID.SizeType;
         existingStyleCodeByID.ItemWeight = ItemWeight || existingStyleCodeByID.ItemWeight;
         existingStyleCodeByID.ItemPackingWeight = ItemPackingWeight || existingStyleCodeByID.ItemPackingWeight;
 
@@ -68,8 +76,8 @@ exports.StyleCodeUpdate = async (req, res) => {
         // Return success message
         res.status(200).json({ message: 'Style Code Updated Successfully' });
     } catch (error) {
-        // Log and return error
         console.error("Error while updating StyleCode:", error);
         res.status(500).json({ error: 'Server Error' });
     }
 };
+

@@ -2,22 +2,35 @@ const mongoose = require('mongoose');
 
 const styleCodeSchema = new mongoose.Schema({
     StyleCodeID: {
-        type: String, // Changed to String to match the format of "11TM010019"
+        type: String,
         required: true,
     },
     StyleCode: {
         type: String,
         required: true,
     },
+    Description: {
+        type: String,
+        required: true,
+    },
+    Color: {
+        type: String,
+        required: true,
+    },
+    SizeType: { // Add this field
+        type: String,
+        enum: ['Inch', 'Cm', 'Alpha'], // Limit to valid size types
+        required: true,
+    },
     ItemWeight: {
-        type: Map, // Using a Map to hold weights for different categories
-        of: Number, // Each value in the map is a Number
+        type: Map,
+        of: Number,
         required: true,
     },
     ItemPackingWeight: {
         type: Number,
         required: true,
-    }
+    },
 });
 
 // Define and export the StyleCode model
