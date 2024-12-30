@@ -19,7 +19,7 @@ const styleCodeSchema = new mongoose.Schema({
     },
     SizeType: {
         type: String,
-        enum: ['Inch', 'Cm', 'Alpha'],
+        enum: ['Inch', 'Cm', 'Alphabetic'],
         required: true,
     },
     ItemWeight: {
