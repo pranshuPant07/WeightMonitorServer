@@ -37,6 +37,7 @@ exports.getStyleCodes = async (req, res) => {
 }
 
 
+
 exports.StyleCodeUpdate = async (req, res) => {
     const { StyleCodeID, StyleCode, Description, Color, SizeType, ItemWeight, ItemPackingWeight } = req.body;
 
@@ -47,15 +48,15 @@ exports.StyleCodeUpdate = async (req, res) => {
         }
 
         // Find the existing StyleCode by StyleCodeID
-        const existingStyleCodeByID = await StyleCode.findOne({ StyleCodeID: StyleCodeID });
+        const existingStyleCodeByID = await StyleCodeS.findOne({ StyleCodeID });
         if (!existingStyleCodeByID) {
             return res.status(404).json({ error: 'StyleCode not found' });
         }
 
         // Check if another StyleCode with the same StyleCode exists
-        const existingStyleCode = await StyleCode.findOne({
-            StyleCode: StyleCode,
-            StyleCodeID: { $ne: StyleCodeID }, // Exclude the current document
+        const existingStyleCode = await StyleCodeS.findOne({
+            StyleCode,
+            StyleCodeID: { $ne: StyleCodeID },
         });
 
         if (existingStyleCode) {
@@ -73,11 +74,11 @@ exports.StyleCodeUpdate = async (req, res) => {
         // Save the updated StyleCode document
         await existingStyleCodeByID.save();
 
-        // Return success message
         res.status(200).json({ message: 'Style Code Updated Successfully' });
     } catch (error) {
         console.error("Error while updating StyleCode:", error);
         res.status(500).json({ error: 'Server Error' });
     }
 };
+
 

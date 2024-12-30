@@ -17,9 +17,9 @@ const styleCodeSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    SizeType: { // Add this field
+    SizeType: {
         type: String,
-        enum: ['Inch', 'Cm', 'Alpha'], // Limit to valid size types
+        enum: ['Inch', 'Cm', 'Alpha'],
         required: true,
     },
     ItemWeight: {
@@ -33,6 +33,5 @@ const styleCodeSchema = new mongoose.Schema({
     },
 });
 
-// Define and export the StyleCode model
 const StyleCode = mongoose.model('StyleCode', styleCodeSchema);
-module.exports = StyleCode;
+module.exports = StyleCode; // Ensure the model is exported
