@@ -43,7 +43,7 @@ exports.StyleCodeUpdate = async (req, res) => {
 
     try {
         // Validate SizeType
-        if (!['Inch', 'Cm', 'Alpha'].includes(SizeType)) {
+        if (!['Inch', 'Cm', 'Alphabetic'].includes(SizeType)) {
             return res.status(400).json({ error: 'Invalid SizeType' });
         }
 
