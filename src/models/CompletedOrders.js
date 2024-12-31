@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const CompletedOrderSchema = new mongoose.Schema({
+const BoxSchema = new mongoose.Schema({
     BoxNumber: {
         type: String,
         required: true,
@@ -27,9 +27,17 @@ const CompletedOrderSchema = new mongoose.Schema({
     ColorCode: {
         type: String,
         required: true,
-    }
+    },
 });
 
-// Define and export the OrderMaster model
-const CompleteOrders = mongoose.model('CompletedOrders', CompletedOrderSchema);
+const PONumberSchema = new mongoose.Schema({
+    PONumber: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    boxes: [BoxSchema],
+});
+
+const CompleteOrders = mongoose.model('CompleteOrders', PONumberSchema);
 module.exports = CompleteOrders;

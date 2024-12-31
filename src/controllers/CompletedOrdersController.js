@@ -38,12 +38,32 @@ const CompleteOrder = require('../models/CompletedOrders');
 
 exports.getCompleteOrderDetails = async (req, res) => {
     try {
-        // Fetch all completed orders from the database, sorted by BoxNumber
-        const completeOrders = await CompleteOrder.find({});
+        const { PONumber } = req.query; // Get the PONumber from the query parameters
 
-        // Respond with the fetched data
+        if (!PONumber) {
+            // If no PONumber is provided, fetch all PONumbers with their boxes
+            const allOrders = await CompleteOrder.find({});
+
+            if (allOrders.length === 0) {
+                return res.status(404).json({ message: 'No completed orders found.' });
+            }
+
+            return res.status(200).json({
+                message: 'All completed orders fetched successfully.',
+                orders: allOrders,
+            });
+        }
+
+        // Fetch orders for the specific PONumber
+        const poOrders = await CompleteOrder.findOne({ PONumber });
+
+        if (!poOrders) {
+            return res.status(404).json({ message: `No orders found for PO number ${PONumber}.` });
+        }
+
         res.status(200).json({
-            orders: completeOrders,
+            message: `Orders fetched successfully for PO number ${PONumber}.`,
+            PONumber: poOrders,
         });
     } catch (error) {
         console.error('Error fetching complete orders:', error);
@@ -55,51 +75,57 @@ exports.getCompleteOrderDetails = async (req, res) => {
 };
 
 
+
 exports.addCompleteOrdersDetails = async (req, res) => {
     try {
         // Extract data from the request body
-        const { GrossWeight, NetWeight, Quantity, ColorCode, TotalBoxes } = req.body;
+        const { PONumber, GrossWeight, NetWeight, Quantity, ColorCode, TotalBoxes } = req.body;
 
         // Validate the required fields
-        if (!GrossWeight || !NetWeight || !Quantity || !ColorCode || !TotalBoxes) {
-            return res.status(400).json({ message: 'All fields including TotalBoxes are required.' });
+        if (!PONumber || !GrossWeight || !NetWeight || !Quantity || !ColorCode || !TotalBoxes) {
+            return res.status(400).json({ message: 'All fields, including PONumber and TotalBoxes, are required.' });
         }
 
-        // Count the existing entries in the database
-        const currentBoxCount = await CompleteOrder.countDocuments();
-        const nextBoxNumber = currentBoxCount + 1; // Increment the box number
+        // Find or create the PONumber document
+        let poEntry = await CompleteOrder.findOne({ PONumber });
+
+        if (!poEntry) {
+            poEntry = new CompleteOrder({ PONumber, boxes: [] });
+        }
+
+        // Calculate the next box number for the PO
+        const nextBoxNumber = poEntry.boxes.length + 1;
 
         // Validate that the next box number does not exceed the total boxes
         if (nextBoxNumber > TotalBoxes) {
             return res.status(400).json({
-                message: `Cannot add more boxes. TotalBoxes is limited to ${TotalBoxes}.`,
+                message: `Cannot add more boxes for PO number ${PONumber}. TotalBoxes is limited to ${TotalBoxes}.`,
             });
         }
 
-        // Create a new order document
-        const newOrder = new CompleteOrder({
-            BoxNumber: nextBoxNumber,
+        // Create the new box entry
+        const newBox = {
+            BoxNumber: nextBoxNumber.toString(),
             showBoxes: `${nextBoxNumber} of ${TotalBoxes}`,
             GrossWeight,
             NetWeight,
             Quantity,
             ColorCode,
             TotalBoxes,
-        });
+        };
 
-        // Save the document to the database
-        const savedOrder = await newOrder.save();
+        // Add the new box to the PO entry
+        poEntry.boxes.push(newBox);
 
-        // Retrieve all orders to respond with labeled entries
-        const allOrders = await CompleteOrder.find({}).sort({ _id: 1 }); // Sort by creation time (ascending)
-        const completedOrdersWithLabels = allOrders.map((order, index) => ({
-            ...order.toObject(),
-            BoxLabel: `${index + 1} box of ${TotalBoxes}`,
-        }));
+        // Save the updated PO entry
+        await poEntry.save();
+
+        // Fetch all boxes for the updated PONumber
+        const updatedPO = await CompleteOrder.findOne({ PONumber });
 
         res.status(201).json({
-            message: 'Box added successfully.',
-            orders: completedOrdersWithLabels,
+            message: `Box added successfully for PO number ${PONumber}.`,
+            PONumber: updatedPO,
         });
     } catch (error) {
         console.error('Error saving order:', error);
@@ -109,6 +135,7 @@ exports.addCompleteOrdersDetails = async (req, res) => {
         });
     }
 };
+
 
 
 exports.exportCompleteOrders = async (req, res) => {
