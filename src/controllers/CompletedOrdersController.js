@@ -1,4 +1,6 @@
 const CompleteOrder = require('../models/CompletedOrders');
+const PDFDocument = require('pdfkit');
+
 
 // exports.addCompleteOrdersDetails = async (req, res) => {
 //     try {
