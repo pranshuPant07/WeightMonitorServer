@@ -4,7 +4,8 @@ const router = express.Router();
 // Import controllers
 const styleCodeAuth = require('../controllers/StyleCodeController');
 const orderDetials = require('../controllers/OrderDetailController');
-const orderMaster = require('../controllers/OrderMaster')
+const orderMaster = require('../controllers/OrderMaster');
+const CompleteOrders = require('../controllers/CompletedOrdersController');
 
 // Style Code Routes
 router.post('/api/StyleCodeRegister', styleCodeAuth.StyleCodeRegister);
@@ -14,6 +15,10 @@ router.post('/api/updateStyleCodes', styleCodeAuth.StyleCodeUpdate);
 // Order Details Routes
 router.get('/api/getOrderDetails', orderDetials.getOrderDetails);
 router.get('/api/getOrderDetailsByStyleCodeID', orderDetials.getOrderDetailsByStyleCodeID);
+
+//Completed Order Routes
+router.post('/api/addCompleteOrders', CompleteOrders.addCompleteOrdersDetails)
+router.get('/api/downloadCompletedOrders', CompleteOrders.exportCompleteOrders);
 
 router.post('/api/AddOrderDetials', orderDetials.AddOrderDetails);
 router.post('/api/UpdateOrderDetails', orderDetials.UpdateOrderDetails);
