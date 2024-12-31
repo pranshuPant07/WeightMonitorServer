@@ -38,7 +38,7 @@ const CompleteOrder = require('../models/CompletedOrders');
 
 exports.getCompleteOrderDetails = async (req, res) => {
     try {
-        const { PONumber } = req.query; // Get the PONumber from the query parameters
+        const { PONumber } = req.body; // Get the PONumber from the request body
 
         if (!PONumber) {
             // If no PONumber is provided, fetch all PONumbers with their boxes
@@ -63,7 +63,7 @@ exports.getCompleteOrderDetails = async (req, res) => {
 
         res.status(200).json({
             message: `Orders fetched successfully for PO number ${PONumber}.`,
-            PONumber: poOrders,
+            orders: poOrders, // Changed from `PONumber` to `orders` for consistency
         });
     } catch (error) {
         console.error('Error fetching complete orders:', error);
@@ -73,6 +73,7 @@ exports.getCompleteOrderDetails = async (req, res) => {
         });
     }
 };
+
 
 
 

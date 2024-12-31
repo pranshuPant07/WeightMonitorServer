@@ -17,7 +17,7 @@ router.get('/api/getOrderDetails', orderDetials.getOrderDetails);
 router.get('/api/getOrderDetailsByStyleCodeID', orderDetials.getOrderDetailsByStyleCodeID);
 
 //Completed Order Routes
-router.get('/api/getCompletedOrders', CompleteOrders.getCompleteOrderDetails);
+router.post('/api/getCompletedOrders', CompleteOrders.getCompleteOrderDetails);
 router.post('/api/addCompleteOrders', CompleteOrders.addCompleteOrdersDetails);
 router.get('/api/downloadCompletedOrders', CompleteOrders.exportCompleteOrders);
 
