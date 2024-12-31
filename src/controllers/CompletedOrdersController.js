@@ -82,10 +82,10 @@ exports.getCompleteOrderDetails = async (req, res) => {
 exports.addCompleteOrdersDetails = async (req, res) => {
     try {
         // Extract data from the request body
-        const {CustomerName, PONumber, GrossWeight, NetWeight, Quantity, ColorCode, TotalBoxes } = req.body;
+        const { CustomerName, PONumber, GrossWeight, NetWeight, Quantity, ColorCode, TotalBoxes } = req.body;
 
         // Validate the required fields
-        if (!CustomerName||!PONumber || !GrossWeight || !NetWeight || !Quantity || !ColorCode || !TotalBoxes) {
+        if (!CustomerName || !PONumber || !GrossWeight || !NetWeight || !Quantity || !ColorCode || !TotalBoxes) {
             return res.status(400).json({ message: 'All fields, including PONumber and TotalBoxes, are required.' });
         }
 
@@ -144,33 +144,31 @@ exports.addCompleteOrdersDetails = async (req, res) => {
 
 exports.exportCompleteOrders = async (req, res) => {
     try {
-        const orders = await CompleteOrder.find(); // Fetch all orders from the DB
+        const { selectedPO } = req.query;
 
-        // Calculate required data
-        const buyerName = orders[0]?.BuyerName || "Unknown Buyer"; // Assuming BuyerName is stored in the entries
-        const poNumber = orders[0]?.PONumber || "Unknown PO"; // Assuming PONumber is stored in the entries
-        const totalQuantity = orders.reduce((sum, order) => sum + (order.Quantity || 0), 0); // Total Quantity
-        const colorCode = orders.map(order => order.ColorCode).join(", "); // Combine all color codes
-        const boxCount = orders.length; // Total number of entries (Box count)
-        const printDateTime = new Date().toLocaleString(); // Current date and time
+        // Check if selectedPO is provided
+        if (!selectedPO) {
+            return res.status(400).send('PO number is required.');
+        }
 
-        // Start generating the PDF
+        // Find matching orders
+        const orders = await CompleteOrder.find({ PONumber: selectedPO });
+
+        if (orders.length === 0) {
+            return res.status(404).send('No matching orders found for the provided PO.');
+        }
+
         const doc = new PDFDocument();
         res.setHeader('Content-disposition', 'attachment; filename=CompletedOrders.pdf');
         res.setHeader('Content-type', 'application/pdf');
 
         doc.pipe(res);
 
-        // Add the header details
-        doc.fontSize(16).text(`Buyer's Name: ${buyerName}`);
-        doc.fontSize(16).text(`PO Number: ${poNumber}`);
-        doc.fontSize(16).text(`Total Quantity: ${totalQuantity}`);
-        doc.fontSize(16).text(`Color Code: ${colorCode}`);
-        doc.fontSize(16).text(`Box Count: ${boxCount}`);
-        doc.fontSize(16).text(`Print Date and Time: ${printDateTime}`);
+        // Add headers
+        doc.fontSize(18).text(`Completed Orders for PO: ${selectedPO}`, { align: 'center' });
         doc.moveDown();
 
-        // Add the table headers
+        // Table headers
         doc.fontSize(14).text("CARTON", { continued: true, width: 100 });
         doc.text("Gross Weight", { continued: true, width: 100 });
         doc.text("Net Weight", { continued: true, width: 100 });
@@ -179,16 +177,16 @@ exports.exportCompleteOrders = async (req, res) => {
 
         doc.moveDown();
 
-        // Render table data
+        // Table content
         orders.forEach((order, index) => {
-            doc.fontSize(12).text(`${index + 1}`, { continued: true, width: 100 }); // Carton number
-            doc.text(`${order.GrossWeight || 0} kg`, { continued: true, width: 100 }); // Gross Weight
-            doc.text(`${order.NetWeight || 0} kg`, { continued: true, width: 100 }); // Net Weight
-            doc.text(`${order.Quantity || 0}`, { continued: true, width: 100 }); // Quantity
-            doc.text(`${new Date(order.createdAt).toLocaleString()}`); // Creation date and time
+            doc.fontSize(12).text(`${index + 1}`, { continued: true, width: 100 });
+            doc.text(`${order.GrossWeight || 0} kg`, { continued: true, width: 100 });
+            doc.text(`${order.NetWeight || 0} kg`, { continued: true, width: 100 });
+            doc.text(`${order.Quantity || 0}`, { continued: true, width: 100 });
+            doc.text(`${new Date(order.createdAt).toLocaleString()}`);
         });
 
-        doc.end(); // Finalize the PDF
+        doc.end();
     } catch (error) {
         console.error('Error generating PDF:', error);
         res.status(500).send('Internal Server Error');
