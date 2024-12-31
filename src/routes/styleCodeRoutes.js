@@ -28,7 +28,6 @@ router.post('/api/UpdateOrderDetails', orderDetials.UpdateOrderDetails);
 
 // Order Master Routes
 router.post('/api/createOrderMaster', orderMaster.AddOrderMaster);
-// router.get('/api/getOrderMaster', orderMaster.getOrderMaster);
 router.get('/api/getOrderMasterByDate', orderMaster.getOrderMasterByDate);
 router.get('/api/getOrderMasterByPO', orderMaster.getOrderMasterByPO);
 router.get('/api/getOrderMasterByStyleCode', orderMaster.getOrderMasterByStyleCode);

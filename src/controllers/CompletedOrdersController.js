@@ -141,23 +141,23 @@ exports.addCompleteOrdersDetails = async (req, res) => {
 
 exports.exportCompleteOrders = async (req, res) => {
     try {
-        const employees = await CompleteOrder.find();
+        const orders = await CompleteOrder.find();
 
         const doc = new PDFDocument();
-        res.setHeader('Content-disposition', 'attachment; filename=employees.pdf');
+        res.setHeader('Content-disposition', 'attachment; filename=CompletedOrders.pdf');
         res.setHeader('Content-type', 'application/pdf');
 
         doc.pipe(res);
 
-        doc.fontSize(18).text('Employee List', { align: 'center' });
+        doc.fontSize(18).text('Completed Order List', { align: 'center' });
         doc.moveDown();
 
-        employees.forEach((employee, index) => {
+        orders.forEach((order, index) => {
             doc.fontSize(12).text(
-                `${index + 1}.   Name: ${employee.Name},
-        Mobile Number: ${employee.Mobilenumber},
-        Date of Join: ${employee.Dateofjoin},
-        Department: ${employee.Department}
+                `${index + 1}.   Name: ${order.Name},
+        Mobile Number: ${order.Mobilenumber},
+        Date of Join: ${order.Dateofjoin},
+        Department: ${order.Department}
   
         `
             );
