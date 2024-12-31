@@ -36,6 +36,25 @@ const CompleteOrder = require('../models/CompletedOrders');
 //     }
 // };
 
+exports.getCompleteOrderDetails = async (req, res) => {
+    try {
+        // Fetch all completed orders from the database, sorted by BoxNumber
+        const completeOrders = await CompleteOrder.find().sort({ BoxNumber: 1 });
+
+        // Respond with the fetched data
+        res.status(200).json({
+            message: 'Completed orders retrieved successfully.',
+            orders: completeOrders,
+        });
+    } catch (error) {
+        console.error('Error fetching complete orders:', error);
+        res.status(500).json({
+            message: 'An error occurred while fetching complete orders.',
+            error: error.message,
+        });
+    }
+};
+
 
 exports.addCompleteOrdersDetails = async (req, res) => {
     try {
@@ -60,7 +79,8 @@ exports.addCompleteOrdersDetails = async (req, res) => {
 
         // Create a new order document
         const newOrder = new CompleteOrder({
-            BoxNumber: `Box ${nextBoxNumber}`,
+            BoxNumber: nextBoxNumber,
+            showBoxes: `${nextBoxNumber} of ${TotalBoxes}`,
             GrossWeight,
             NetWeight,
             Quantity,

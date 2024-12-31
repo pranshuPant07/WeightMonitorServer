@@ -9,6 +9,9 @@ const CompletedOrderSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    showBoxes: {
+        type: String,
+    },
     GrossWeight: {
         type: Number,
         required: true,
