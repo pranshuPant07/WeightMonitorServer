@@ -39,11 +39,10 @@ const CompleteOrder = require('../models/CompletedOrders');
 exports.getCompleteOrderDetails = async (req, res) => {
     try {
         // Fetch all completed orders from the database, sorted by BoxNumber
-        const completeOrders = await CompleteOrder.find().sort({ BoxNumber: 1 });
+        const completeOrders = await CompleteOrder.find({});
 
         // Respond with the fetched data
         res.status(200).json({
-            message: 'Completed orders retrieved successfully.',
             orders: completeOrders,
         });
     } catch (error) {
