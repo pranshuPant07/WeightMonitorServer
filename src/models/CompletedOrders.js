@@ -5,6 +5,10 @@ const CompletedOrderSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    TotalBoxes: {
+        type: Number,
+        required: true,
+    },
     GrossWeight: {
         type: Number,
         required: true,
