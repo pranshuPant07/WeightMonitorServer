@@ -142,29 +142,51 @@ exports.addCompleteOrdersDetails = async (req, res) => {
 
 exports.exportCompleteOrders = async (req, res) => {
     try {
-        const orders = await CompleteOrder.find();
+        const orders = await CompleteOrder.find(); // Fetch all orders from the DB
 
+        // Calculate required data
+        const buyerName = orders[0]?.BuyerName || "Unknown Buyer"; // Assuming BuyerName is stored in the entries
+        const poNumber = orders[0]?.PONumber || "Unknown PO"; // Assuming PONumber is stored in the entries
+        const totalQuantity = orders.reduce((sum, order) => sum + (order.Quantity || 0), 0); // Total Quantity
+        const colorCode = orders.map(order => order.ColorCode).join(", "); // Combine all color codes
+        const boxCount = orders.length; // Total number of entries (Box count)
+        const printDateTime = new Date().toLocaleString(); // Current date and time
+
+        // Start generating the PDF
         const doc = new PDFDocument();
         res.setHeader('Content-disposition', 'attachment; filename=CompletedOrders.pdf');
         res.setHeader('Content-type', 'application/pdf');
 
         doc.pipe(res);
 
-        doc.fontSize(18).text('Completed Order List', { align: 'center' });
+        // Add the header details
+        doc.fontSize(16).text(`Buyer's Name: ${buyerName}`);
+        doc.fontSize(16).text(`PO Number: ${poNumber}`);
+        doc.fontSize(16).text(`Total Quantity: ${totalQuantity}`);
+        doc.fontSize(16).text(`Color Code: ${colorCode}`);
+        doc.fontSize(16).text(`Box Count: ${boxCount}`);
+        doc.fontSize(16).text(`Print Date and Time: ${printDateTime}`);
         doc.moveDown();
 
+        // Add the table headers
+        doc.fontSize(14).text("CARTON", { continued: true, width: 100 });
+        doc.text("Gross Weight", { continued: true, width: 100 });
+        doc.text("Net Weight", { continued: true, width: 100 });
+        doc.text("Quantity", { continued: true, width: 100 });
+        doc.text("Date and Time", { align: "left" });
+
+        doc.moveDown();
+
+        // Render table data
         orders.forEach((order, index) => {
-            doc.fontSize(12).text(
-                `${index + 1}.   Name: ${order.Name},
-        Mobile Number: ${order.Mobilenumber},
-        Date of Join: ${order.Dateofjoin},
-        Department: ${order.Department}
-  
-        `
-            );
+            doc.fontSize(12).text(`${index + 1}`, { continued: true, width: 100 }); // Carton number
+            doc.text(`${order.GrossWeight || 0} kg`, { continued: true, width: 100 }); // Gross Weight
+            doc.text(`${order.NetWeight || 0} kg`, { continued: true, width: 100 }); // Net Weight
+            doc.text(`${order.Quantity || 0}`, { continued: true, width: 100 }); // Quantity
+            doc.text(`${new Date(order.createdAt).toLocaleString()}`); // Creation date and time
         });
 
-        doc.end();
+        doc.end(); // Finalize the PDF
     } catch (error) {
         console.error('Error generating PDF:', error);
         res.status(500).send('Internal Server Error');

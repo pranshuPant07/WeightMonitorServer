@@ -21,6 +21,7 @@ router.post('/api/getCompletedOrders', CompleteOrders.getCompleteOrderDetails);
 router.post('/api/addCompleteOrders', CompleteOrders.addCompleteOrdersDetails);
 router.get('/api/downloadCompletedOrders', CompleteOrders.exportCompleteOrders);
 
+
 router.post('/api/AddOrderDetials', orderDetials.AddOrderDetails);
 router.post('/api/UpdateOrderDetails', orderDetials.UpdateOrderDetails);
 
