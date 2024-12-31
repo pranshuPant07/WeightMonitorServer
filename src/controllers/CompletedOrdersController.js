@@ -80,10 +80,10 @@ exports.getCompleteOrderDetails = async (req, res) => {
 exports.addCompleteOrdersDetails = async (req, res) => {
     try {
         // Extract data from the request body
-        const { PONumber, GrossWeight, NetWeight, Quantity, ColorCode, TotalBoxes } = req.body;
+        const {CustomerName, PONumber, GrossWeight, NetWeight, Quantity, ColorCode, TotalBoxes } = req.body;
 
         // Validate the required fields
-        if (!PONumber || !GrossWeight || !NetWeight || !Quantity || !ColorCode || !TotalBoxes) {
+        if (!CustomerName||!PONumber || !GrossWeight || !NetWeight || !Quantity || !ColorCode || !TotalBoxes) {
             return res.status(400).json({ message: 'All fields, including PONumber and TotalBoxes, are required.' });
         }
 
@@ -106,6 +106,7 @@ exports.addCompleteOrdersDetails = async (req, res) => {
 
         // Create the new box entry
         const newBox = {
+            CustomerName,
             BoxNumber: nextBoxNumber.toString(),
             showBoxes: `${nextBoxNumber} of ${TotalBoxes}`,
             GrossWeight,
