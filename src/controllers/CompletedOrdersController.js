@@ -198,84 +198,107 @@ exports.getCompleteOrderDetails = async (req, res) => {
 
 exports.addCompleteOrdersDetails = async (req, res) => {
     try {
-        // Extract data from the request body
         const {
             BuyersName,
             PONumber,
             StyleCode,
             ColorCode,
-            BoxNumber,
             TotalBoxes,
             GrossWeight,
             NetWeight,
             Quantity
         } = req.body;
 
-        // Validate the required fields
+        // Validate required fields
         if (
             !BuyersName ||
             !PONumber ||
             !StyleCode ||
             !ColorCode ||
-            !BoxNumber ||
             !TotalBoxes ||
             !GrossWeight ||
             !NetWeight ||
             !Quantity
         ) {
-            return res.status(400).json({ message: 'All fields, including PONumber, BoxNumber, and TotalBoxes, are required.' });
+            return res.status(400).json({ message: 'All fields, including PONumber and TotalBoxes, are required.' });
         }
 
-        // Find or create the PONumber document
+        // Find the matching PONumber in the database
         let poEntry = await CompleteOrders.findOne({ PONumber });
 
-        if (!poEntry) {
-            poEntry = new CompleteOrders({ PONumber, boxes: [] });
-        }
+        if (poEntry) {
+            // If PONumber exists, calculate the next BoxNumber
+            const existingBoxes = poEntry.boxes.length > 0 ? poEntry.boxes[0].data.length : 0;
+            const nextBoxNumber = existingBoxes + 1;
 
-        // Check if the box number already exists
-        const existingBox = poEntry.boxes.find(box => box.data.some(field => field.BoxNumber === BoxNumber));
-        if (existingBox) {
-            return res.status(400).json({
-                message: `Box number ${BoxNumber} already exists for PO number ${PONumber}.`,
+            // Validate that the total number of boxes does not exceed TotalBoxes
+            if (nextBoxNumber > TotalBoxes) {
+                return res.status(400).json({
+                    message: `Cannot add more boxes for PO number ${PONumber}. TotalBoxes is limited to ${TotalBoxes}.`,
+                });
+            }
+
+            // Add the new box details to the existing PO entry
+            const newBoxData = {
+                BoxNumber: nextBoxNumber.toString(), // Auto-incremented BoxNumber
+                TotalBoxes,
+                showBoxes: `${nextBoxNumber} of ${TotalBoxes}`,
+                GrossWeight,
+                NetWeight,
+                Quantity,
+            };
+
+            // Append the new box data to the first box object
+            if (poEntry.boxes.length > 0) {
+                poEntry.boxes[0].data.push(newBoxData);
+            } else {
+                // If no boxes exist, create a new box entry
+                poEntry.boxes.push({
+                    BuyersName,
+                    StyleCode,
+                    ColorCode,
+                    data: [newBoxData],
+                });
+            }
+
+            // Save the updated PO entry
+            await poEntry.save();
+
+            return res.status(200).json({
+                message: `Box added successfully to existing PO number ${PONumber}.`,
+                PONumber: poEntry,
+            });
+        } else {
+            // If PONumber does not exist, create a new entry
+            const newPO = new CompleteOrders({
+                PONumber,
+                boxes: [
+                    {
+                        BuyersName,
+                        StyleCode,
+                        ColorCode,
+                        data: [
+                            {
+                                BoxNumber: "1", // First box starts with 1
+                                TotalBoxes,
+                                showBoxes: `1 of ${TotalBoxes}`,
+                                GrossWeight,
+                                NetWeight,
+                                Quantity,
+                            },
+                        ],
+                    },
+                ],
+            });
+
+            // Save the new PO entry
+            await newPO.save();
+
+            return res.status(201).json({
+                message: `New PO number ${PONumber} created and box added successfully.`,
+                PONumber: newPO,
             });
         }
-
-        // Validate that the total number of boxes does not exceed the allowed TotalBoxes
-        if (poEntry.boxes.length >= TotalBoxes) {
-            return res.status(400).json({
-                message: `Cannot add more boxes for PO number ${PONumber}. TotalBoxes is limited to ${TotalBoxes}.`,
-            });
-        }
-
-        // Create the new box entry
-        const newBox = {
-            BuyersName,
-            StyleCode,
-            ColorCode,
-            data: [
-                { BoxNumber },
-                { TotalBoxes },
-                { showBoxes: `${BoxNumber} of ${TotalBoxes}` },
-                { GrossWeight },
-                { NetWeight },
-                { Quantity },
-            ],
-        };
-
-        // Add the new box to the PO entry
-        poEntry.boxes.push(newBox);
-
-        // Save the updated PO entry
-        await poEntry.save();
-
-        // Fetch all boxes for the updated PONumber
-        const updatedPO = await CompleteOrders.findOne({ PONumber });
-
-        res.status(201).json({
-            message: `Box added successfully for PO number ${PONumber}.`,
-            PONumber: updatedPO,
-        });
     } catch (error) {
         console.error('Error saving order:', error);
         res.status(500).json({
@@ -284,6 +307,9 @@ exports.addCompleteOrdersDetails = async (req, res) => {
         });
     }
 };
+
+
+
 
 
 
