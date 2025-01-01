@@ -482,11 +482,12 @@ exports.exportCompleteOrders = async (req, res) => {
         const buyerName = order.boxes[0]?.BuyersName || 'Unknown Buyer'; // Assuming BuyersName exists in the boxes
         const poNumber = selectedPO;
         const totalQuantity = order.boxes.reduce(
-            (sum, box) => sum + (box.data.find(field => field.Quantity)?.Quantity || 0),
+            (sum, box) =>
+                sum + box.data.reduce((dataSum, field) => dataSum + (field.Quantity || 0), 0),
             0
         );
-        const colorCode = order.boxes.map(box => box.ColorCode).join(', ') || 'N/A';
-        const totalBoxCount = order.boxes.length;
+        const colorCode = [...new Set(order.boxes.map(box => box.ColorCode))].join(', ') || 'N/A'; // Unique color codes
+        const totalBoxCount = order.boxes.reduce((sum, box) => sum + box.data.length, 0); // Total entries in data array
         const printDateTime = new Date().toLocaleString();
 
         const doc = new PDFDocument();
@@ -496,46 +497,57 @@ exports.exportCompleteOrders = async (req, res) => {
         doc.pipe(res);
 
         // Add headers
-        doc.fontSize(18).text(`Buyer's Name: ${buyerName}`, { align: 'left' });
-        doc.fontSize(18).text(`PO Number: ${poNumber}`, { align: 'left' });
-        doc.fontSize(18).text(`PO Quantity: ${totalQuantity}`, { align: 'left' });
-        doc.fontSize(18).text(`Color Code: ${colorCode}`, { align: 'left' });
-        doc.fontSize(18).text(`Total Box Count: ${totalBoxCount}`, { align: 'left' });
-        doc.fontSize(18).text(`Print Date and Time: ${printDateTime}`, { align: 'left' });
+        doc.fontSize(16).text(`Buyer's Name: ${buyerName}`, { align: 'left' });
+        doc.fontSize(16).text(`PO Number: ${poNumber}`, { align: 'left' });
+        doc.fontSize(16).text(`PO Quantity: ${totalQuantity}`, { align: 'left' });
+        doc.fontSize(16).text(`Color Code: ${colorCode}`, { align: 'left' });
+        doc.fontSize(16).text(`Total Box Count: ${totalBoxCount}`, { align: 'left' });
+        doc.fontSize(16).text(`Print Date and Time: ${printDateTime}`, { align: 'left' });
         doc.moveDown();
 
         // Define table headers
         const tableHeaders = ["CARTON", "Gross Weight", "Net Weight", "Quantity", "Date and Time"];
         const startX = 50;
         const startY = doc.y;
-        const columnWidths = [50, 100, 100, 100, 200];
+        const columnWidths = [100, 100, 100, 100, 150];
 
-        // Draw table headers with smaller font size
-        doc.fontSize(10); // Decrease the font size for headers
+        // Draw bold table headers
+        doc.font('Helvetica-Bold').fontSize(10); // Set bold font and smaller size for headers
         tableHeaders.forEach((header, i) => {
-            doc.text(header, startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0), startY);
+            const columnStart = startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
+            doc.text(header, columnStart, startY, { width: columnWidths[i], align: 'center' });
         });
+
+        // Draw line below headers
+        const headerBottomY = doc.y + 5; // Add some space below the headers
+        doc.moveTo(startX, headerBottomY)
+            .lineTo(startX + columnWidths.reduce((a, b) => a + b, 0), headerBottomY)
+            .stroke();
 
         doc.moveDown();
 
-        // Draw table rows
+        // Draw table rows with centered alignment
+        doc.font('Helvetica').fontSize(10); // Reset to regular font for table rows
         order.boxes.forEach((box) => {
-            const currentY = doc.y;
+            box.data.forEach((field) => {
+                const currentY = doc.y;
 
-            const boxNumber = box.data.find(field => field.BoxNumber)?.BoxNumber || 'N/A';
-            const grossWeight = box.data.find(field => field.GrossWeight)?.GrossWeight || 0;
-            const netWeight = box.data.find(field => field.NetWeight)?.NetWeight || 0;
-            const quantity = box.data.find(field => field.Quantity)?.Quantity || 0;
-            const createdAt = box.data.find(field => field.createdAt)?.createdAt || box.createdAt;
+                const boxNumber = field.BoxNumber || 'N/A';
+                const grossWeight = `${field.GrossWeight || 0} g`;
+                const netWeight = `${field.NetWeight || 0} g`;
+                const quantity = field.Quantity || 0;
+                const createdAt = `${new Date(field.createdAt || box.createdAt).toLocaleString()}`;
 
-            // Draw each column
-            doc.text(boxNumber, startX, currentY, { width: columnWidths[0] });
-            doc.text(`${grossWeight} g`, startX + columnWidths[0], currentY, { width: columnWidths[1] });
-            doc.text(`${netWeight} g`, startX + columnWidths.slice(0, 2).reduce((a, b) => a + b, 0), currentY, { width: columnWidths[2] });
-            doc.text(quantity, startX + columnWidths.slice(0, 3).reduce((a, b) => a + b, 0), currentY, { width: columnWidths[3] });
-            doc.text(`${new Date(createdAt).toLocaleString()}`, startX + columnWidths.slice(0, 4).reduce((a, b) => a + b, 0), currentY, { width: columnWidths[4] });
+                const rowData = [boxNumber, grossWeight, netWeight, quantity, createdAt];
 
-            doc.moveDown();
+                // Render each column's data centered
+                rowData.forEach((text, i) => {
+                    const columnStart = startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                    doc.text(text, columnStart, currentY, { width: columnWidths[i], align: 'center' });
+                });
+
+                doc.moveDown();
+            });
         });
 
         doc.end();
