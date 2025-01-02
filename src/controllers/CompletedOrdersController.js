@@ -56,118 +56,6 @@ exports.getCompleteOrderDetails = async (req, res) => {
 };
 
 
-// exports.addCompleteOrdersDetails = async (req, res) => {
-//     try {
-//         const {
-//             BuyersName,
-//             PONumber,
-//             StyleCode,
-//             ColorCode,
-//             TotalBoxes,
-//             GrossWeight,
-//             NetWeight,
-//             Quantity
-//         } = req.body;
-
-//         // Validate required fields
-//         if (
-//             !BuyersName ||
-//             !PONumber ||
-//             !StyleCode ||
-//             !ColorCode ||
-//             !TotalBoxes ||
-//             !GrossWeight ||
-//             !NetWeight ||
-//             !Quantity
-//         ) {
-//             return res.status(400).json({ message: 'All fields, including PONumber and TotalBoxes, are required.' });
-//         }
-
-//         // Find the matching PONumber in the database
-//         let poEntry = await CompleteOrders.findOne({ PONumber });
-
-//         if (poEntry) {
-//             // If PONumber exists, calculate the next BoxNumber
-//             const existingBoxes = poEntry.boxes.length > 0 ? poEntry.boxes[0].data.length : 0;
-//             const nextBoxNumber = existingBoxes + 1;
-
-//             // Validate that the total number of boxes does not exceed TotalBoxes
-//             if (nextBoxNumber > TotalBoxes) {
-//                 return res.status(400).json({
-//                     message: `Cannot add more boxes for PO number ${PONumber}. TotalBoxes is limited to ${TotalBoxes}.`,
-//                 });
-//             }
-
-//             // Add the new box details to the existing PO entry
-//             const newBoxData = {
-//                 BoxNumber: nextBoxNumber.toString(), // Auto-incremented BoxNumber
-//                 TotalBoxes,
-//                 showBoxes: `${nextBoxNumber} of ${TotalBoxes}`,
-//                 GrossWeight,
-//                 NetWeight,
-//                 Quantity,
-//             };
-
-//             // Append the new box data to the first box object
-//             if (poEntry.boxes.length > 0) {
-//                 poEntry.boxes[0].data.push(newBoxData);
-//             } else {
-//                 // If no boxes exist, create a new box entry
-//                 poEntry.boxes.push({
-//                     BuyersName,
-//                     StyleCode,
-//                     ColorCode,
-//                     data: [newBoxData],
-//                 });
-//             }
-
-//             // Save the updated PO entry
-//             await poEntry.save();
-
-//             return res.status(200).json({
-//                 message: `Box added successfully to existing PO number ${PONumber}.`,
-//                 PONumber: poEntry,
-//             });
-//         } else {
-//             // If PONumber does not exist, create a new entry
-//             const newPO = new CompleteOrders({
-//                 PONumber,
-//                 boxes: [
-//                     {
-//                         BuyersName,
-//                         StyleCode,
-//                         ColorCode,
-//                         data: [
-//                             {
-//                                 BoxNumber: "1", // First box starts with 1
-//                                 TotalBoxes,
-//                                 showBoxes: `1 of ${TotalBoxes}`,
-//                                 GrossWeight,
-//                                 NetWeight,
-//                                 Quantity,
-//                             },
-//                         ],
-//                     },
-//                 ],
-//             });
-
-//             // Save the new PO entry
-//             await newPO.save();
-
-//             return res.status(201).json({
-//                 message: `New PO number ${PONumber} created and box added successfully.`,
-//                 PONumber: newPO,
-//             });
-//         }
-//     } catch (error) {
-//         console.error('Error saving order:', error);
-//         res.status(500).json({
-//             message: 'An error occurred while saving the order.',
-//             error: error.message,
-//         });
-//     }
-// };
-
 exports.addCompleteOrdersDetails = async (req, res) => {
     try {
         const {
@@ -300,8 +188,6 @@ exports.addCompleteOrdersDetails = async (req, res) => {
 };
 
 
-
-
 exports.exportCompleteOrders = async (req, res) => {
     try {
         const { selectedPO } = req.query;
@@ -337,20 +223,55 @@ exports.exportCompleteOrders = async (req, res) => {
 
         doc.pipe(res);
 
-        // Add headers
-        doc.fontSize(14).text(`Buyer's Name: ${buyerName}`, { align: 'left' });
-        doc.fontSize(14).text(`Style Code: ${StyleCode}`, { align: 'left' });
-        doc.fontSize(14).text(`PO Number: ${poNumber}`, { align: 'left' });
-        doc.fontSize(14).text(`PO Quantity: ${totalQuantity}`, { align: 'left' });
-        doc.fontSize(14).text(`Color Code: ${colorCode}`, { align: 'left' });
-        doc.fontSize(14).text(`Total Box Count: ${totalBoxCount}`, { align: 'left' });
-        doc.fontSize(14).text(`Print Date and Time: ${printDateTime}`, { align: 'left' });
+        const topMargin = 20; // Set a custom top margin
+        doc.y = topMargin; // Set the vertical position
+        
+        // Add Print Date and Time at the top-right corner
+        doc.fontSize(10).text(`Print Date: ${printDateTime}`, { align: 'right' });
+        
+        // Leave a small gap below the top-right text before other headers
+        doc.moveDown();
+        doc.moveDown();
         doc.moveDown();
         doc.moveDown();
 
+        // Define the two-row, three-column layout for the remaining details
+        const headerDetails = [
+            { label: "Buyer's Name", value: buyerName },
+            { label: "Style Code", value: StyleCode },
+            { label: "PO Number", value: poNumber },
+            { label: "PO Quantity", value: totalQuantity },
+            { label: "Color Code", value: colorCode },
+            { label: "Total Box Count", value: totalBoxCount },
+        ];
+
+        // Define positions and render the headers in a grid layout
+        const columnWidth = 180; // Define column width for alignment
+        const rowSpacing = 15; // Spacing between rows
+        let currentX = 50; // Start from the left margin
+        let currentY = doc.y; // Start from the current Y position
+
+        headerDetails.forEach((detail, index) => {
+            // Render label and value in the format "Label: Value"
+            doc.fontSize(10).text(`${detail.label}: ${detail.value}`, currentX, currentY);
+
+            // Move to the next column or row
+            if ((index + 1) % 3 === 0) {
+                currentX = 50; // Reset to the left margin for a new row
+                currentY += rowSpacing; // Move down to the next row
+            } else {
+                currentX += columnWidth; // Move to the next column
+            }
+        });
+
+        // Leave some space before the table
+        doc.moveDown();
+        doc.moveDown();
+
+
         // Define table headers
-        const tableHeaders = ["Carton", "Gross Weight", "Net Weight", "Quantity", "Date and Time"];
-        const startX = 50;
+        const tableHeaders = ["Carton #", "Gross Weight", "Net Weight", "Quantity", "Date and Time"];
+        const startX = 25;
         const startY = doc.y;
         const columnWidths = [100, 100, 100, 100, 150];
 
