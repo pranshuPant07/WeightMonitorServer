@@ -284,7 +284,7 @@ exports.exportCompleteOrders = async (req, res) => {
 
         const addPageNumber = (pageNumber) => {
             doc.fontSize(8)
-                .text(`Page ${pageNumber}`, 0, doc.page.height - 30, { align: 'center' }); // Bottom center
+                .text(`Page ${pageNumber}`, 0, doc.page.height - 82, { align: 'right' }); // Bottom center
         };
 
         // Draw initial headers
