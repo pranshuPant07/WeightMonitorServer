@@ -218,6 +218,151 @@ exports.addCompleteOrdersDetails = async (req, res) => {
 
 
 
+// exports.exportCompleteOrders = async (req, res) => {
+//     try {
+//         const { selectedPO } = req.query;
+
+//         if (!selectedPO) {
+//             return res.status(400).send('PO number is required.');
+//         }
+
+//         const order = await CompleteOrders.findOne({ PONumber: selectedPO });
+
+//         if (!order) {
+//             return res.status(404).send('No matching orders found for the provided PO.');
+//         }
+
+//         const buyerName = order.boxes[0]?.BuyersName || 'Unknown Buyer';
+//         const StyleCode = order.boxes[0]?.StyleCode;
+//         const poNumber = selectedPO;
+//         const totalQuantity = order.boxes.reduce(
+//             (sum, box) =>
+//                 sum + box.data.reduce((dataSum, field) => dataSum + (field.Quantity || 0), 0),
+//             0
+//         );
+//         const colorCode = [...new Set(order.boxes.map(box => box.ColorCode))].join(', ') || 'N/A';
+//         const totalBoxCount = order.boxes.reduce((sum, box) => sum + box.data.length, 0);
+//         const printDateTime = new Date().toLocaleString();
+
+//         const doc = new PDFDocument();
+//         let currentPageNumber = 1; // Track the current page number
+//         res.setHeader('Content-disposition', 'attachment; filename=CompletedOrders.pdf');
+//         res.setHeader('Content-type', 'application/pdf');
+
+//         doc.pipe(res);
+
+//         const topMargin = 20;
+//         doc.y = topMargin;
+
+//         // Print Date and Time
+//         doc.fontSize(10).text(`Print Date: ${printDateTime}`, { align: 'right' });
+//         doc.moveDown();
+//         doc.moveDown();
+
+//         // Render Header Details
+//         const headerDetails = [
+//             { label: "Buyer's Name", value: buyerName },
+//             { label: "Style Code", value: StyleCode },
+//             { label: "PO Number", value: poNumber },
+//             { label: "PO Quantity", value: totalQuantity },
+//             { label: "Color Code", value: colorCode },
+//             { label: "Total Box Count", value: totalBoxCount },
+//         ];
+
+//         const columnWidth = 180;
+//         const rowSpacing = 20; // Increased spacing between rows
+//         let currentX = 50;
+//         let currentY = doc.y;
+
+//         headerDetails.forEach((detail, index) => {
+//             doc.fontSize(10).text(`${detail.label}: ${detail.value}`, currentX, currentY);
+
+//             if ((index + 1) % 3 === 0) {
+//                 currentX = 50;
+//                 currentY += rowSpacing;
+//             } else {
+//                 currentX += columnWidth;
+//             }
+//         });
+
+//         // Add space between Header Details and Table Headers
+//         doc.moveDown(); // Add a single line of space
+//         doc.moveDown(); // Add another line for more space
+
+//         // Table Header and Layout
+//         const tableHeaders = ["Carton #", "Gross Weight", "Net Weight", "Quantity", "Date and Time"];
+//         const startX = 60;
+//         const columnWidths = [60, 100, 100, 60, 150];
+//         const rowHeight = 20;
+//         const maxRowsPerPage = 30; // Fixed number of rows per page
+//         let currentRowCount = 0; // Track the number of rows on the current page
+
+//         const drawTableHeaders = () => {
+//             doc.font('Helvetica-Bold').fontSize(10); // Bold headers
+//             tableHeaders.forEach((header, i) => {
+//                 const columnStart = startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
+//                 doc.text(header, columnStart, currentY, { width: columnWidths[i], align: 'center' });
+//             });
+
+//             currentY += rowHeight; // Move below headers
+
+//             // Add a line below the headers
+//             doc.moveTo(startX, currentY - 10)
+//                 .lineTo(startX + columnWidths.reduce((a, b) => a + b, 0), currentY - 10)
+//                 .stroke();
+//         };
+
+//         const addPageNumber = (pageNumber) => {
+//             doc.fontSize(8)
+//                 .text(`Page ${pageNumber}`, 0, doc.page.height - 82, { align: 'right' }); // Bottom center
+//         };
+
+//         // Draw initial headers
+//         drawTableHeaders();
+
+//         // Render Table Rows
+//         order.boxes.forEach((box) => {
+//             box.data.forEach((field) => {
+//                 // Check if we need a new page
+//                 if (currentRowCount >= maxRowsPerPage) {
+//                     addPageNumber(currentPageNumber); // Add page number to the current page
+//                     currentPageNumber++; // Increment page number
+//                     doc.addPage(); // Add a new page
+//                     currentY = 50; // Reset Y position for the new page
+//                     currentRowCount = 0; // Reset row count for the new page
+//                     drawTableHeaders(); // Draw table headers on the new page
+//                 }
+
+//                 doc.font('Helvetica').fontSize(10); // Normal font for entries
+//                 const rowData = [
+//                     field.BoxNumber || 'N/A',
+//                     `${field.GrossWeight || 0} g`,
+//                     `${field.NetWeight || 0} g`,
+//                     field.Quantity || 0,
+//                     new Date(field.createdAt || box.createdAt).toLocaleString(),
+//                 ];
+
+//                 rowData.forEach((text, i) => {
+//                     const columnStart = startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
+//                     doc.text(text, columnStart, currentY, { width: columnWidths[i], align: 'center' });
+//                 });
+
+//                 currentY += rowHeight; // Increment Y position
+//                 currentRowCount++; // Increment row count
+//             });
+//         });
+
+//         // Add the final page number
+//         addPageNumber(currentPageNumber);
+
+//         doc.end();
+//     } catch (error) {
+//         console.error('Error generating PDF:', error);
+//         res.status(500).send('Internal Server Error');
+//     }
+// };
+
+
 exports.exportCompleteOrders = async (req, res) => {
     try {
         const { selectedPO } = req.query;
@@ -242,7 +387,16 @@ exports.exportCompleteOrders = async (req, res) => {
         );
         const colorCode = [...new Set(order.boxes.map(box => box.ColorCode))].join(', ') || 'N/A';
         const totalBoxCount = order.boxes.reduce((sum, box) => sum + box.data.length, 0);
-        const printDateTime = new Date().toLocaleString();
+
+        // Convert the current date and time to IST
+        const getISTDateTime = (date) =>
+            new Intl.DateTimeFormat('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                dateStyle: 'medium',
+                timeStyle: 'short',
+            }).format(new Date(date || Date.now()));
+
+        const printDateTime = getISTDateTime(); // Print date in IST
 
         const doc = new PDFDocument();
         let currentPageNumber = 1; // Track the current page number
@@ -254,7 +408,7 @@ exports.exportCompleteOrders = async (req, res) => {
         const topMargin = 20;
         doc.y = topMargin;
 
-        // Print Date and Time
+        // Print Date and Time in IST
         doc.fontSize(10).text(`Print Date: ${printDateTime}`, { align: 'right' });
         doc.moveDown();
         doc.moveDown();
@@ -339,7 +493,7 @@ exports.exportCompleteOrders = async (req, res) => {
                     `${field.GrossWeight || 0} g`,
                     `${field.NetWeight || 0} g`,
                     field.Quantity || 0,
-                    new Date(field.createdAt || box.createdAt).toLocaleString(),
+                    getISTDateTime(field.createdAt || box.createdAt), // Convert to IST
                 ];
 
                 rowData.forEach((text, i) => {
