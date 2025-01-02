@@ -56,6 +56,118 @@ exports.getCompleteOrderDetails = async (req, res) => {
 };
 
 
+// exports.addCompleteOrdersDetails = async (req, res) => {
+//     try {
+//         const {
+//             BuyersName,
+//             PONumber,
+//             StyleCode,
+//             ColorCode,
+//             TotalBoxes,
+//             GrossWeight,
+//             NetWeight,
+//             Quantity
+//         } = req.body;
+
+//         // Validate required fields
+//         if (
+//             !BuyersName ||
+//             !PONumber ||
+//             !StyleCode ||
+//             !ColorCode ||
+//             !TotalBoxes ||
+//             !GrossWeight ||
+//             !NetWeight ||
+//             !Quantity
+//         ) {
+//             return res.status(400).json({ message: 'All fields, including PONumber and TotalBoxes, are required.' });
+//         }
+
+//         // Find the matching PONumber in the database
+//         let poEntry = await CompleteOrders.findOne({ PONumber });
+
+//         if (poEntry) {
+//             // If PONumber exists, calculate the next BoxNumber
+//             const existingBoxes = poEntry.boxes.length > 0 ? poEntry.boxes[0].data.length : 0;
+//             const nextBoxNumber = existingBoxes + 1;
+
+//             // Validate that the total number of boxes does not exceed TotalBoxes
+//             if (nextBoxNumber > TotalBoxes) {
+//                 return res.status(400).json({
+//                     message: `Cannot add more boxes for PO number ${PONumber}. TotalBoxes is limited to ${TotalBoxes}.`,
+//                 });
+//             }
+
+//             // Add the new box details to the existing PO entry
+//             const newBoxData = {
+//                 BoxNumber: nextBoxNumber.toString(), // Auto-incremented BoxNumber
+//                 TotalBoxes,
+//                 showBoxes: `${nextBoxNumber} of ${TotalBoxes}`,
+//                 GrossWeight,
+//                 NetWeight,
+//                 Quantity,
+//             };
+
+//             // Append the new box data to the first box object
+//             if (poEntry.boxes.length > 0) {
+//                 poEntry.boxes[0].data.push(newBoxData);
+//             } else {
+//                 // If no boxes exist, create a new box entry
+//                 poEntry.boxes.push({
+//                     BuyersName,
+//                     StyleCode,
+//                     ColorCode,
+//                     data: [newBoxData],
+//                 });
+//             }
+
+//             // Save the updated PO entry
+//             await poEntry.save();
+
+//             return res.status(200).json({
+//                 message: `Box added successfully to existing PO number ${PONumber}.`,
+//                 PONumber: poEntry,
+//             });
+//         } else {
+//             // If PONumber does not exist, create a new entry
+//             const newPO = new CompleteOrders({
+//                 PONumber,
+//                 boxes: [
+//                     {
+//                         BuyersName,
+//                         StyleCode,
+//                         ColorCode,
+//                         data: [
+//                             {
+//                                 BoxNumber: "1", // First box starts with 1
+//                                 TotalBoxes,
+//                                 showBoxes: `1 of ${TotalBoxes}`,
+//                                 GrossWeight,
+//                                 NetWeight,
+//                                 Quantity,
+//                             },
+//                         ],
+//                     },
+//                 ],
+//             });
+
+//             // Save the new PO entry
+//             await newPO.save();
+
+//             return res.status(201).json({
+//                 message: `New PO number ${PONumber} created and box added successfully.`,
+//                 PONumber: newPO,
+//             });
+//         }
+//     } catch (error) {
+//         console.error('Error saving order:', error);
+//         res.status(500).json({
+//             message: 'An error occurred while saving the order.',
+//             error: error.message,
+//         });
+//     }
+// };
+
 exports.addCompleteOrdersDetails = async (req, res) => {
     try {
         const {
@@ -69,6 +181,9 @@ exports.addCompleteOrdersDetails = async (req, res) => {
             Quantity
         } = req.body;
 
+        // Log incoming request body
+        console.log("Request Body:", req.body);
+
         // Validate required fields
         if (
             !BuyersName ||
@@ -80,19 +195,26 @@ exports.addCompleteOrdersDetails = async (req, res) => {
             !NetWeight ||
             !Quantity
         ) {
+            console.error("Validation Failed: Missing Required Fields.");
             return res.status(400).json({ message: 'All fields, including PONumber and TotalBoxes, are required.' });
         }
 
         // Find the matching PONumber in the database
+        console.log(`Checking for existing PONumber: ${PONumber}`);
         let poEntry = await CompleteOrders.findOne({ PONumber });
 
         if (poEntry) {
-            // If PONumber exists, calculate the next BoxNumber
+            console.log(`PONumber ${PONumber} found in database.`);
+
+            // Calculate the next BoxNumber
             const existingBoxes = poEntry.boxes.length > 0 ? poEntry.boxes[0].data.length : 0;
             const nextBoxNumber = existingBoxes + 1;
 
+            console.log(`Existing Boxes: ${existingBoxes}, Next Box Number: ${nextBoxNumber}`);
+
             // Validate that the total number of boxes does not exceed TotalBoxes
             if (nextBoxNumber > TotalBoxes) {
+                console.error(`Box limit exceeded for PO number ${PONumber}. TotalBoxes: ${TotalBoxes}`);
                 return res.status(400).json({
                     message: `Cannot add more boxes for PO number ${PONumber}. TotalBoxes is limited to ${TotalBoxes}.`,
                 });
@@ -108,9 +230,11 @@ exports.addCompleteOrdersDetails = async (req, res) => {
                 Quantity,
             };
 
-            // Append the new box data to the first box object
+            console.log("New Box Data to Add:", newBoxData);
+
             if (poEntry.boxes.length > 0) {
                 poEntry.boxes[0].data.push(newBoxData);
+                console.log("Appended new box data to existing boxes.");
             } else {
                 // If no boxes exist, create a new box entry
                 poEntry.boxes.push({
@@ -119,16 +243,20 @@ exports.addCompleteOrdersDetails = async (req, res) => {
                     ColorCode,
                     data: [newBoxData],
                 });
+                console.log("Created new box entry since no existing boxes were found.");
             }
 
             // Save the updated PO entry
             await poEntry.save();
+            console.log("PO entry updated successfully.");
 
             return res.status(200).json({
                 message: `Box added successfully to existing PO number ${PONumber}.`,
                 PONumber: poEntry,
             });
         } else {
+            console.log(`PONumber ${PONumber} not found. Creating new PO entry.`);
+
             // If PONumber does not exist, create a new entry
             const newPO = new CompleteOrders({
                 PONumber,
@@ -151,8 +279,11 @@ exports.addCompleteOrdersDetails = async (req, res) => {
                 ],
             });
 
+            console.log("New PO Data:", newPO);
+
             // Save the new PO entry
             await newPO.save();
+            console.log("New PO entry created successfully.");
 
             return res.status(201).json({
                 message: `New PO number ${PONumber} created and box added successfully.`,
@@ -160,13 +291,16 @@ exports.addCompleteOrdersDetails = async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('Error saving order:', error);
+        console.error("Error saving order:", error);
         res.status(500).json({
             message: 'An error occurred while saving the order.',
             error: error.message,
         });
     }
 };
+
+
+
 
 exports.exportCompleteOrders = async (req, res) => {
     try {
