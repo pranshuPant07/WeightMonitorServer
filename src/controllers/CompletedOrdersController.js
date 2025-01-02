@@ -223,10 +223,11 @@ exports.exportCompleteOrders = async (req, res) => {
         const topMargin = 20;
         doc.y = topMargin;
 
+        // Print Date and Time
         doc.fontSize(10).text(`Print Date: ${printDateTime}`, { align: 'right' });
-
         doc.moveDown();
 
+        // Render Header Details
         const headerDetails = [
             { label: "Buyer's Name", value: buyerName },
             { label: "Style Code", value: StyleCode },
@@ -255,35 +256,31 @@ exports.exportCompleteOrders = async (req, res) => {
         doc.moveDown();
         doc.moveDown();
 
+        // Table Header and Layout
         const tableHeaders = ["Carton #", "Gross Weight", "Net Weight", "Quantity", "Date and Time"];
         const startX = 25;
         const columnWidths = [60, 100, 100, 60, 150];
         const rowHeight = 20;
 
-        const drawTableHeaders = (yPosition) => {
-            doc.font('Helvetica-Bold').fontSize(10);
-            tableHeaders.forEach((header, i) => {
-                const columnStart = startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
-                doc.text(header, columnStart, yPosition, { width: columnWidths[i], align: 'center' });
-            });
+        // Render Table Headers
+        doc.font('Helvetica-Bold').fontSize(10);
+        tableHeaders.forEach((header, i) => {
+            const columnStart = startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
+            doc.text(header, columnStart, currentY, { width: columnWidths[i], align: 'center' });
+        });
 
-            const headerBottomY = yPosition + rowHeight - 10;
-            doc.moveTo(startX, headerBottomY)
-                .lineTo(startX + columnWidths.reduce((a, b) => a + b, 0), headerBottomY)
-                .stroke();
+        currentY += rowHeight; // Move below headers
 
-            return headerBottomY + 10; // Return position below the headers
-        };
-
-        currentY = drawTableHeaders(doc.y);
-
+        // Render Table Rows
         doc.font('Helvetica').fontSize(10);
         order.boxes.forEach((box) => {
             box.data.forEach((field) => {
-                // Check if adding this row will exceed the page height
-                if (currentY + rowHeight > doc.page.height - 50) {
+                // Check if entire row can fit on the current page
+                const requiredHeight = rowHeight;
+                if (currentY + requiredHeight > doc.page.height - 50) {
+                    // Add a new page and continue entries without headers
                     doc.addPage();
-                    currentY = drawTableHeaders(50); // Redraw headers on the new page
+                    currentY = 50; // Reset Y position on the new page
                 }
 
                 const rowData = [
@@ -299,7 +296,7 @@ exports.exportCompleteOrders = async (req, res) => {
                     doc.text(text, columnStart, currentY, { width: columnWidths[i], align: 'center' });
                 });
 
-                currentY += rowHeight;
+                currentY += rowHeight; // Increment Y position
             });
         });
 
@@ -309,6 +306,9 @@ exports.exportCompleteOrders = async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 };
+
+
+
 
 
 
