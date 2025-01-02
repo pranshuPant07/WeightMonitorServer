@@ -215,6 +215,7 @@ exports.exportCompleteOrders = async (req, res) => {
         const printDateTime = new Date().toLocaleString();
 
         const doc = new PDFDocument();
+        let currentPageNumber = 1; // Track the current page number
         res.setHeader('Content-disposition', 'attachment; filename=CompletedOrders.pdf');
         res.setHeader('Content-type', 'application/pdf');
 
@@ -281,6 +282,11 @@ exports.exportCompleteOrders = async (req, res) => {
                 .stroke();
         };
 
+        const addPageNumber = (pageNumber) => {
+            doc.fontSize(8)
+                .text(`Page ${pageNumber}`, 0, doc.page.height - 30, { align: 'center' }); // Bottom center
+        };
+
         // Draw initial headers
         drawTableHeaders();
 
@@ -289,6 +295,8 @@ exports.exportCompleteOrders = async (req, res) => {
             box.data.forEach((field) => {
                 // Check if we need a new page
                 if (currentRowCount >= maxRowsPerPage) {
+                    addPageNumber(currentPageNumber); // Add page number to the current page
+                    currentPageNumber++; // Increment page number
                     doc.addPage(); // Add a new page
                     currentY = 50; // Reset Y position for the new page
                     currentRowCount = 0; // Reset row count for the new page
@@ -314,12 +322,18 @@ exports.exportCompleteOrders = async (req, res) => {
             });
         });
 
+        // Add the final page number
+        addPageNumber(currentPageNumber);
+
         doc.end();
     } catch (error) {
         console.error('Error generating PDF:', error);
         res.status(500).send('Internal Server Error');
     }
 };
+
+
+
 
 
 
