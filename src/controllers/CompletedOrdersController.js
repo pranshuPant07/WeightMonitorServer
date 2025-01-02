@@ -8,7 +8,7 @@ exports.getCompleteOrderDetails = async (req, res) => {
         if (!PONumber) {
             // Fetch all orders if PONumber is not provided
             const allOrders = await CompleteOrders.find({});
-            
+
             if (!allOrders || allOrders.length === 0) {
                 return res.status(404).json({ message: 'No completed orders found.' });
             }
@@ -27,6 +27,7 @@ exports.getCompleteOrderDetails = async (req, res) => {
                         GrossWeight: dataItem.GrossWeight || 0,
                         NetWeight: dataItem.NetWeight || 0,
                         Quantity: dataItem.Quantity || 0,
+                        Size: dataItem.Size,
                         createdAt: dataItem.createdAt ? new Date(dataItem.createdAt).toLocaleString() : 'Invalid Date',
                     }))
                 }))
@@ -59,6 +60,7 @@ exports.getCompleteOrderDetails = async (req, res) => {
                     GrossWeight: dataItem.GrossWeight || 0,
                     NetWeight: dataItem.NetWeight || 0,
                     Quantity: dataItem.Quantity || 0,
+                    Size: dataItem.Size || 0,
                     createdAt: dataItem.createdAt ? new Date(dataItem.createdAt).toLocaleString() : 'Invalid Date',
                 }))
             }))
@@ -90,7 +92,8 @@ exports.addCompleteOrdersDetails = async (req, res) => {
             TotalBoxes,
             GrossWeight,
             NetWeight,
-            Quantity
+            Quantity,
+            Size
         } = req.body;
 
         // Log incoming request body
@@ -105,7 +108,8 @@ exports.addCompleteOrdersDetails = async (req, res) => {
             !TotalBoxes ||
             !GrossWeight ||
             !NetWeight ||
-            !Quantity
+            !Quantity ||
+            !Size
         ) {
             console.error("Validation Failed: Missing Required Fields.");
             return res.status(400).json({ message: 'All fields, including PONumber and TotalBoxes, are required.' });
@@ -140,6 +144,7 @@ exports.addCompleteOrdersDetails = async (req, res) => {
                 GrossWeight,
                 NetWeight,
                 Quantity,
+                Size,
                 createdAt: new Date(),
             };
 
@@ -183,6 +188,7 @@ exports.addCompleteOrdersDetails = async (req, res) => {
                                 GrossWeight,
                                 NetWeight,
                                 Quantity,
+                                Size,
                                 createdAt: new Date(),
                             },
                         ],

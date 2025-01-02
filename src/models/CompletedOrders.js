@@ -160,6 +160,7 @@ const BoxSchema = new mongoose.Schema({
             GrossWeight: { type: Number, required: true },
             NetWeight: { type: Number, required: true },
             Quantity: { type: Number, required: true },
+            Size: { type: String, required: true },
             createdAt: { type: Date, default: Date.now }, // Timestamp for each object in the data array
         }
     ],
