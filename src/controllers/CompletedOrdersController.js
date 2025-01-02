@@ -226,6 +226,7 @@ exports.exportCompleteOrders = async (req, res) => {
         // Print Date and Time
         doc.fontSize(10).text(`Print Date: ${printDateTime}`, { align: 'right' });
         doc.moveDown();
+        doc.moveDown();
 
         // Render Header Details
         const headerDetails = [
@@ -238,7 +239,7 @@ exports.exportCompleteOrders = async (req, res) => {
         ];
 
         const columnWidth = 180;
-        const rowSpacing = 15;
+        const rowSpacing = 20; // Increased spacing between rows
         let currentX = 50;
         let currentY = doc.y;
 
@@ -253,36 +254,48 @@ exports.exportCompleteOrders = async (req, res) => {
             }
         });
 
-        doc.moveDown();
-        doc.moveDown();
+        // Add space between Header Details and Table Headers
+        doc.moveDown(); // Add a single line of space
+        doc.moveDown(); // Add another line for more space
 
         // Table Header and Layout
         const tableHeaders = ["Carton #", "Gross Weight", "Net Weight", "Quantity", "Date and Time"];
-        const startX = 25;
+        const startX = 60;
         const columnWidths = [60, 100, 100, 60, 150];
         const rowHeight = 20;
+        const maxRowsPerPage = 30; // Fixed number of rows per page
+        let currentRowCount = 0; // Track the number of rows on the current page
 
-        // Render Table Headers
-        doc.font('Helvetica-Bold').fontSize(10);
-        tableHeaders.forEach((header, i) => {
-            const columnStart = startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
-            doc.text(header, columnStart, currentY, { width: columnWidths[i], align: 'center' });
-        });
+        const drawTableHeaders = () => {
+            doc.font('Helvetica-Bold').fontSize(10); // Bold headers
+            tableHeaders.forEach((header, i) => {
+                const columnStart = startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                doc.text(header, columnStart, currentY, { width: columnWidths[i], align: 'center' });
+            });
 
-        currentY += rowHeight; // Move below headers
+            currentY += rowHeight; // Move below headers
+
+            // Add a line below the headers
+            doc.moveTo(startX, currentY - 10)
+                .lineTo(startX + columnWidths.reduce((a, b) => a + b, 0), currentY - 10)
+                .stroke();
+        };
+
+        // Draw initial headers
+        drawTableHeaders();
 
         // Render Table Rows
-        doc.font('Helvetica').fontSize(10);
         order.boxes.forEach((box) => {
             box.data.forEach((field) => {
-                // Check if entire row can fit on the current page
-                const requiredHeight = rowHeight;
-                if (currentY + requiredHeight > doc.page.height - 50) {
-                    // Add a new page and continue entries without headers
-                    doc.addPage();
-                    currentY = 50; // Reset Y position on the new page
+                // Check if we need a new page
+                if (currentRowCount >= maxRowsPerPage) {
+                    doc.addPage(); // Add a new page
+                    currentY = 50; // Reset Y position for the new page
+                    currentRowCount = 0; // Reset row count for the new page
+                    drawTableHeaders(); // Draw table headers on the new page
                 }
 
+                doc.font('Helvetica').fontSize(10); // Normal font for entries
                 const rowData = [
                     field.BoxNumber || 'N/A',
                     `${field.GrossWeight || 0} g`,
@@ -297,6 +310,7 @@ exports.exportCompleteOrders = async (req, res) => {
                 });
 
                 currentY += rowHeight; // Increment Y position
+                currentRowCount++; // Increment row count
             });
         });
 
@@ -306,8 +320,6 @@ exports.exportCompleteOrders = async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 };
-
-
 
 
 
