@@ -6,27 +6,35 @@ exports.getCompleteOrderDetails = async (req, res) => {
         const { PONumber } = req.body; // Get the PONumber from the request body
 
         if (!PONumber) {
-            // If no PONumber is provided, fetch all orders
+            // Fetch all orders if PONumber is not provided
             const allOrders = await CompleteOrders.find({});
-
-            if (allOrders.length === 0) {
+            
+            if (!allOrders || allOrders.length === 0) {
                 return res.status(404).json({ message: 'No completed orders found.' });
             }
 
+            const formattedOrders = allOrders.map(order => ({
+                PONumber: order.PONumber,
+                boxes: order.boxes.map(box => ({
+                    PONumber: box.PONumber || order.PONumber, // Ensure PONumber exists
+                    BuyersName: box.BuyersName || 'N/A',
+                    StyleCode: box.StyleCode || 'N/A',
+                    ColorCode: box.ColorCode || 'N/A',
+                    data: box.data.map(dataItem => ({
+                        BoxNumber: dataItem.BoxNumber || 'N/A',
+                        TotalBoxes: dataItem.TotalBoxes || 0,
+                        showBoxes: dataItem.showBoxes || 'N/A',
+                        GrossWeight: dataItem.GrossWeight || 0,
+                        NetWeight: dataItem.NetWeight || 0,
+                        Quantity: dataItem.Quantity || 0,
+                        createdAt: dataItem.createdAt ? new Date(dataItem.createdAt).toLocaleString() : 'Invalid Date',
+                    }))
+                }))
+            }));
+
             return res.status(200).json({
                 message: 'All completed orders fetched successfully.',
-                orders: allOrders.map(order => ({
-                    PONumber: order.PONumber,
-                    boxes: order.boxes.map(box => ({
-                        PONumber: box.PONumber, // Include PONumber in each box
-                        BuyersName: box.BuyersName,
-                        StyleCode: box.StyleCode,
-                        ColorCode: box.ColorCode,
-                        data: box.data.map(dataItem => ({
-                            ...dataItem, // Include all data properties
-                        }))
-                    }))
-                })),
+                orders: formattedOrders,
             });
         }
 
@@ -37,29 +45,38 @@ exports.getCompleteOrderDetails = async (req, res) => {
             return res.status(404).json({ message: `No orders found for PO number ${PONumber}.` });
         }
 
+        const formattedOrder = {
+            PONumber: poOrders.PONumber,
+            boxes: poOrders.boxes.map(box => ({
+                PONumber: box.PONumber || poOrders.PONumber,
+                BuyersName: box.BuyersName || 'N/A',
+                StyleCode: box.StyleCode || 'N/A',
+                ColorCode: box.ColorCode || 'N/A',
+                data: box.data.map(dataItem => ({
+                    BoxNumber: dataItem.BoxNumber || 'N/A',
+                    TotalBoxes: dataItem.TotalBoxes || 0,
+                    showBoxes: dataItem.showBoxes || 'N/A',
+                    GrossWeight: dataItem.GrossWeight || 0,
+                    NetWeight: dataItem.NetWeight || 0,
+                    Quantity: dataItem.Quantity || 0,
+                    createdAt: dataItem.createdAt ? new Date(dataItem.createdAt).toLocaleString() : 'Invalid Date',
+                }))
+            }))
+        };
+
         return res.status(200).json({
             message: `Orders fetched successfully for PO number ${PONumber}.`,
-            orders: {
-                PONumber: poOrders.PONumber,
-                boxes: poOrders.boxes.map(box => ({
-                    PONumber: box.PONumber, // Include PONumber in each box
-                    BuyersName: box.BuyersName,
-                    StyleCode: box.StyleCode,
-                    ColorCode: box.ColorCode,
-                    data: box.data.map(dataItem => ({
-                        ...dataItem, // Include all data properties
-                    }))
-                }))
-            },
+            orders: formattedOrder,
         });
     } catch (error) {
         console.error('Error fetching complete orders:', error);
-        res.status(500).json({
+        return res.status(500).json({
             message: 'An error occurred while fetching complete orders.',
             error: error.message,
         });
     }
 };
+
 
 
 
