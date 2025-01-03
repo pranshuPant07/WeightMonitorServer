@@ -295,11 +295,11 @@ exports.exportCompleteOrders = async (req, res) => {
 
         const topMargin = 20;
         doc.y = topMargin;
-
         // Print Date and Time in IST
-        doc.fontSize(10).text(`Print Date: ${printDateTime}`, { align: 'right' });
-        doc.moveDown();
-        doc.moveDown();
+        doc.font('Helvetica-Bold').fontSize(14).text('TANGERINE', 50, topMargin); // Left-aligned
+        doc.font('Helvetica-Bold').fontSize(10).text('Packing Slip',0, topMargin, { align: 'center' }); // Center-aligned
+        doc.font('Helvetica-Bold').fontSize(10).text(`Print Date: ${printDateTime}`, 0, topMargin, { align: 'right' }); // Right-aligned
+        doc.moveDown(3); // Add vertical space
 
         // Render Header Details
         const headerDetails = [
@@ -328,11 +328,10 @@ exports.exportCompleteOrders = async (req, res) => {
         });
 
         // Add space between Header Details and Table Headers
-        doc.moveDown(); // Add a single line of space
-        doc.moveDown(); // Add another line for more space
+        doc.moveDown(3); // Add vertical space
 
         // Table Header and Layout
-        const tableHeaders = ["Carton #", "Gross Weight", "Net Weight", "Quantity", "Date and Time"];
+        const tableHeaders = ["Carton #", "Gross Weight (g)", "Net Weight (g)", "Quantity #", "Date and Time"];
         const startX = 60;
         const columnWidths = [60, 100, 100, 60, 150];
         const rowHeight = 20;
@@ -378,8 +377,8 @@ exports.exportCompleteOrders = async (req, res) => {
                 doc.font('Helvetica').fontSize(10); // Normal font for entries
                 const rowData = [
                     field.BoxNumber || 'N/A',
-                    `${field.GrossWeight || 0} g`,
-                    `${field.NetWeight || 0} g`,
+                    `${field.GrossWeight || 0} `,
+                    `${field.NetWeight || 0} `,
                     field.Quantity || 0,
                     getISTDateTime(field.createdAt || box.createdAt), // Convert to IST
                 ];
