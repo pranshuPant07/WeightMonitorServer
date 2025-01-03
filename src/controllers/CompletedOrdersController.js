@@ -293,12 +293,17 @@ exports.exportCompleteOrders = async (req, res) => {
         doc.pipe(res);
 
         const topMargin = 20;
-        doc.y = topMargin;
-        // Print Date and Time in IST
-        doc.font('Helvetica-Bold').fontSize(14).text('TANGERINE', 50, topMargin); // Left-aligned
-        doc.font('Helvetica-Bold').fontSize(10).text('Packing Slip', 0, topMargin, { align: 'center' }); // Center-aligned
-        doc.font('Helvetica-Bold').fontSize(10).text(`Print Date: ${printDateTime}`, 0, topMargin, { align: 'right' }); // Right-aligned
-        doc.moveDown(3); // Add vertical space
+
+        // Function to print header
+        const printHeader = () => {
+            doc.y = topMargin;
+            doc.font('Helvetica-Bold').fontSize(14).text('TANGERINE', 50, topMargin); // Left-aligned
+            doc.font('Helvetica-Bold').fontSize(10).text('Packing Slip', 0, topMargin, { align: 'center' }); // Center-aligned
+            doc.font('Helvetica-Bold').fontSize(10).text(`Print Date: ${printDateTime}`, 0, topMargin, { align: 'right' }); // Right-aligned
+            doc.moveDown(3); // Add vertical space
+        };
+
+        printHeader(); // Print header on the first page
 
         // Render Header Details
         const headerDetails = [
@@ -368,6 +373,7 @@ exports.exportCompleteOrders = async (req, res) => {
                     addPageNumber(currentPageNumber); // Add page number to the current page
                     currentPageNumber++; // Increment page number
                     doc.addPage(); // Add a new page
+                    printHeader(); // Reprint the header at the top of each new page
                     currentY = 50; // Reset Y position for the new page
                     currentRowCount = 0; // Reset row count for the new page
                     drawTableHeaders(); // Draw table headers on the new page
@@ -401,3 +407,4 @@ exports.exportCompleteOrders = async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 };
+
