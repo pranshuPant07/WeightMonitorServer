@@ -185,6 +185,7 @@ exports.addCompleteOrdersDetails = async (req, res) => {
             };
 
             poEntry.boxes.push({
+                PONumber,
                 BuyersName,
                 StyleCode,
                 ColorCode,
@@ -210,6 +211,7 @@ exports.addCompleteOrdersDetails = async (req, res) => {
             PONumber,
             boxes: [
                 {
+                    PONumber,
                     BuyersName,
                     StyleCode,
                     ColorCode,
