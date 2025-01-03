@@ -250,7 +250,6 @@ exports.addCompleteOrdersDetails = async (req, res) => {
     }
 };
 
-
 exports.exportCompleteOrders = async (req, res) => {
     try {
         const { selectedPO } = req.query;
@@ -297,7 +296,7 @@ exports.exportCompleteOrders = async (req, res) => {
         doc.y = topMargin;
         // Print Date and Time in IST
         doc.font('Helvetica-Bold').fontSize(14).text('TANGERINE', 50, topMargin); // Left-aligned
-        doc.font('Helvetica-Bold').fontSize(10).text('Packing Slip',0, topMargin, { align: 'center' }); // Center-aligned
+        doc.font('Helvetica-Bold').fontSize(10).text('Packing Slip', 0, topMargin, { align: 'center' }); // Center-aligned
         doc.font('Helvetica-Bold').fontSize(10).text(`Print Date: ${printDateTime}`, 0, topMargin, { align: 'right' }); // Right-aligned
         doc.moveDown(3); // Add vertical space
 
