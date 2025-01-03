@@ -300,7 +300,7 @@ exports.exportCompleteOrders = async (req, res) => {
             doc.font('Helvetica-Bold').fontSize(14).text('TANGERINE', 50, topMargin); // Left-aligned
             doc.font('Helvetica-Bold').fontSize(10).text('Packing Slip', 0, topMargin, { align: 'center' }); // Center-aligned
             doc.font('Helvetica-Bold').fontSize(10).text(`Print Date: ${printDateTime}`, 0, topMargin, { align: 'right' }); // Right-aligned
-            doc.moveDown(3); // Add vertical space
+            doc.moveDown(1); // Add vertical space
         };
 
         printHeader(); // Print header on the first page
