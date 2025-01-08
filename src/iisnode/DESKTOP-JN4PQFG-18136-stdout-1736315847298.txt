@@ -1,0 +1,20 @@
+Server is running on http://0.0.0.0:\\.\pipe\c06e9e3a-7e7c-4f51-ade5-053487cdb3f4
+Received request: GET /
+Connected to MongoDB
+Received request: GET /
+Received request: GET /
+Received request: GET /
+Received request: GET /
+Received request: GET /
+Received request: GET /
+Received request: GET /
+Received request: GET /api/getStyleCodes
+Received request: GET /
+Received request: GET /api/getOrderDetails
+Received request: GET /api/getOrderDetails
+Received request: GET /api/getOrderDetails
+Received request: GET /api/
+Received request: GET /
+Received request: GET /api
+Received request: GET /api/getOrderDetails
+Received request: GET /api/

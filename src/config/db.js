@@ -4,11 +4,12 @@ require('dotenv').config();  // Ensure dotenv is required to load variables from
 // MongoDB connection function
 const connectDB = async () => {
     try {
-        const uri = process.env.MONGODB_URI;  // Use the URI from the .env file
-        if (!uri) {
+        const mongoURI = "mongodb://localhost:27017/myLocalDatabase";
+        // Use the URI from the .env file
+        if (!mongoURI) {
             throw new Error("MongoDB URI is not defined in .env file");
         }
-        await mongoose.connect(uri);
+        await mongoose.connect(mongoURI);
         console.log('Connected to MongoDB');
     } catch (error) {
         console.error('MongoDB connection error:', error);

@@ -10,6 +10,7 @@ const CompleteOrders = require('../controllers/CompletedOrdersController');
 // Style Code Routes
 router.post('/api/StyleCodeRegister', styleCodeAuth.StyleCodeRegister);
 router.get('/api/getStyleCodes', styleCodeAuth.getStyleCodes);
+router.get('/', styleCodeAuth.welcome);
 router.post('/api/updateStyleCodes', styleCodeAuth.StyleCodeUpdate);
 
 // Order Details Routes

@@ -75,6 +75,14 @@ exports.getStyleCodes = async (req, res) => {
     }
 }
 
+exports.welcome = async (req, res) => {
+    try {
+        res.status(200).json({message:"CONNECTED"});
+    } catch {
+        res.status(500).json({ error: 'NOT CONNECTED' });
+    }
+}
+
 
 
 exports.StyleCodeUpdate = async (req, res) => {

@@ -1,0 +1,3 @@
+Server is running on http://0.0.0.0:\\.\pipe\95bc226d-16dd-4f1d-93c1-898588c958d1
+Received request: GET /
+Connected to MongoDB
