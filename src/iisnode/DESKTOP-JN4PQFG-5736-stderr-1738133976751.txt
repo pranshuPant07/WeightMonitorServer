@@ -1,0 +1,12 @@
+(node:5736) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ValidationError: An undefined 'request.ip' was detected. This might indicate a misconfiguration or the connection being destroyed prematurely. See https://express-rate-limit.github.io/ERR_ERL_UNDEFINED_IP_ADDRESS/ for more information.
+    at Object.ip (C:\New folder\Server\node_modules\express-rate-limit\dist\index.cjs:126:13)
+    at wrappedValidations.<computed> [as ip] (C:\New folder\Server\node_modules\express-rate-limit\dist\index.cjs:362:22)
+    at Object.keyGenerator (C:\New folder\Server\node_modules\express-rate-limit\dist\index.cjs:615:20)
+    at C:\New folder\Server\node_modules\express-rate-limit\dist\index.cjs:670:32
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async C:\New folder\Server\node_modules\express-rate-limit\dist\index.cjs:650:5 {
+  code: 'ERR_ERL_UNDEFINED_IP_ADDRESS',
+  help: 'https://express-rate-limit.github.io/ERR_ERL_UNDEFINED_IP_ADDRESS/'
+}

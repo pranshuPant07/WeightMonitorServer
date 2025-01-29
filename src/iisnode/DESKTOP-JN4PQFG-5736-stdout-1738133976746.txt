@@ -1,0 +1,6 @@
+Server is running on http://0.0.0.0:\\.\pipe\2fcb856b-7a82-4dfa-ba63-620f8db1809f
+Received request: GET /
+Connected to MongoDB
+Received request: GET /favicon.ico
+Received request: POST /api/getStyleCodes
+Received request: POST /api/Register
