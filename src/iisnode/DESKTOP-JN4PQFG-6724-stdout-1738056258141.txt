@@ -1,0 +1,22 @@
+Server is running on http://0.0.0.0:\\.\pipe\d1c6de63-a313-4202-a75d-981604295f41
+Received request: GET /
+Connected to MongoDB
+Received request: GET /favicon.ico
+Received request: POST /api/getStyleCodes
+Received request: GET /api/getStyleCodes
+Received request: GET /api/getOrderMasterByStyleCode
+Received request: GET /api/getOrderMasterByDate?date=2025-01-28
+Received request: GET /api/getOrderMasterByDate?date=2025-01-28
+Received request: GET /api/getOrderMasterByDate?date=2025-01-08
+Received request: POST /api/getCompletedOrders
+Received request: GET /api/getOrderMasterByDate?date=2025-01-08
+Received request: GET /api/getOrderMasterByPO?PO=NB2814
+Received request: GET /api/getOrderMasterByStyleCode?StyleCodeID[]=13HN01C002
+Received request: GET /api/getOrderMasterByDate?date=2025-01-28
+Received request: GET /api/getOrderMasterByStyleCode
+Received request: GET /api/getOrderMasterByDate?date=2025-01-28
+Received request: GET /api/getOrderMasterByDate?date=2025-01-08
+Received request: POST /api/getCompletedOrders
+Received request: GET /api/getOrderMasterByDate?date=2025-01-08
+Received request: GET /api/getOrderMasterByPO?PO=NK9443
+Received request: GET /api/getOrderMasterByStyleCode?StyleCodeID[]=11TM010019

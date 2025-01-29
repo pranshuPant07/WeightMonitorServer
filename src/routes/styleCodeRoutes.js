@@ -6,6 +6,11 @@ const styleCodeAuth = require('../controllers/StyleCodeController');
 const orderDetials = require('../controllers/OrderDetailController');
 const orderMaster = require('../controllers/OrderMaster');
 const CompleteOrders = require('../controllers/CompletedOrdersController');
+const NumberMaster = require('../controllers/NumberMasterController');
+
+
+//Test Server
+router.post('/api/Register', NumberMaster.Register)
 
 // Style Code Routes
 router.post('/api/StyleCodeRegister', styleCodeAuth.StyleCodeRegister);

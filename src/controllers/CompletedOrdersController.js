@@ -1,6 +1,84 @@
 const CompleteOrders = require('../models/CompletedOrders');
 const PDFDocument = require('pdfkit');
 
+// exports.getCompleteOrderDetails = async (req, res) => {
+//     try {
+//         const { PONumber } = req.body; // Get the PONumber from the request body
+
+//         if (!PONumber) {
+//             // Fetch all orders if PONumber is not provided
+//             const allOrders = await CompleteOrders.find({});
+
+//             if (!allOrders || allOrders.length === 0) {
+//                 return res.status(404).json({ message: 'No completed orders found.' });
+//             }
+
+//             const formattedOrders = allOrders.map(order => ({
+//                 PONumber: order.PONumber,
+//                 boxes: order.boxes.map(box => ({
+//                     PONumber: box.PONumber || order.PONumber, // Ensure PONumber exists
+//                     BuyersName: box.BuyersName || 'N/A',
+//                     StyleCode: box.StyleCode || 'N/A',
+//                     ColorCode: box.ColorCode || 'N/A',
+//                     data: box.data.map(dataItem => ({
+//                         BoxNumber: dataItem.BoxNumber || 'N/A',
+//                         TotalBoxes: dataItem.TotalBoxes || 0,
+//                         showBoxes: dataItem.showBoxes || 'N/A',
+//                         GrossWeight: dataItem.GrossWeight || 0,
+//                         NetWeight: dataItem.NetWeight || 0,
+//                         Quantity: dataItem.Quantity || 0,
+//                         Size: dataItem.Size,
+//                         createdAt: dataItem.createdAt ? new Date(dataItem.createdAt).toLocaleString() : 'Invalid Date',
+//                     }))
+//                 }))
+//             }));
+
+//             return res.status(200).json({
+//                 message: 'All completed orders fetched successfully.',
+//                 orders: formattedOrders,
+//             });
+//         }
+
+//         // Fetch orders for the specific PONumber
+//         const poOrders = await CompleteOrders.findOne({ PONumber });
+
+//         if (!poOrders) {
+//             return res.status(404).json({ message: `No orders found for PO number ${PONumber}.` });
+//         }
+
+//         const formattedOrder = {
+//             PONumber: poOrders.PONumber,
+//             boxes: poOrders.boxes.map(box => ({
+//                 PONumber: box.PONumber || poOrders.PONumber,
+//                 BuyersName: box.BuyersName || 'N/A',
+//                 StyleCode: box.StyleCode || 'N/A',
+//                 ColorCode: box.ColorCode || 'N/A',
+//                 data: box.data.map(dataItem => ({
+//                     BoxNumber: dataItem.BoxNumber || 'N/A',
+//                     TotalBoxes: dataItem.TotalBoxes || 0,
+//                     showBoxes: dataItem.showBoxes || 'N/A',
+//                     GrossWeight: dataItem.GrossWeight || 0,
+//                     NetWeight: dataItem.NetWeight || 0,
+//                     Quantity: dataItem.Quantity || 0,
+//                     Size: dataItem.Size || 0,
+//                     createdAt: dataItem.createdAt ? new Date(dataItem.createdAt).toLocaleString() : 'Invalid Date',
+//                 }))
+//             }))
+//         };
+
+//         return res.status(200).json({
+//             message: `Orders fetched successfully for PO number ${PONumber}.`,
+//             orders: formattedOrder,
+//         });
+//     } catch (error) {
+//         console.error('Error fetching complete orders:', error);
+//         return res.status(500).json({
+//             message: 'An error occurred while fetching complete orders.',
+//             error: error.message,
+//         });
+//     }
+// };
+
 exports.getCompleteOrderDetails = async (req, res) => {
     try {
         const { PONumber } = req.body; // Get the PONumber from the request body
@@ -10,7 +88,7 @@ exports.getCompleteOrderDetails = async (req, res) => {
             const allOrders = await CompleteOrders.find({});
 
             if (!allOrders || allOrders.length === 0) {
-                return res.status(404).json({ message: 'No completed orders found.' });
+                return res.status(200).json({ message: 'No completed orders found.', orders: [] });
             }
 
             const formattedOrders = allOrders.map(order => ({
@@ -43,7 +121,11 @@ exports.getCompleteOrderDetails = async (req, res) => {
         const poOrders = await CompleteOrders.findOne({ PONumber });
 
         if (!poOrders) {
-            return res.status(404).json({ message: `No orders found for PO number ${PONumber}.` });
+            // Instead of sending a 404 error, send a response with '0'
+            return res.status(200).json({
+                message: `No orders found for PO number ${PONumber}.`,
+                orders: 0
+            });
         }
 
         const formattedOrder = {
@@ -78,6 +160,8 @@ exports.getCompleteOrderDetails = async (req, res) => {
         });
     }
 };
+
+
 
 exports.addCompleteOrdersDetails = async (req, res) => {
     try {
